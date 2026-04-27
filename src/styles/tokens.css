@@ -1,0 +1,49 @@
+/* ── IzenRides Design Tokens ── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  /* Brand */
+  --clr-violet:   #7c3aed;
+  --clr-violet-2: #a855f7;
+  --clr-violet-3: #c084fc;
+  --clr-cyan:     #06b6d4;
+  --clr-cyan-2:   #22d3ee;
+  --clr-cyan-3:   #67e8f9;
+
+  /* Backgrounds */
+  --clr-bg:   #06060f;
+  --clr-bg-2: #0d0d1f;
+  --clr-bg-3: #12122a;
+
+  /* Surfaces */
+  --clr-sur:   rgba(255,255,255,0.04);
+  --clr-sur-2: rgba(255,255,255,0.08);
+
+  /* Borders */
+  --clr-bor:   rgba(255,255,255,0.08);
+  --clr-bor-2: rgba(255,255,255,0.15);
+
+  /* Text */
+  --clr-txt:   #f8f8fc;
+  --clr-txt-2: #a0a0c0;
+  --clr-txt-3: #5a5a7a;
+
+  /* Semantic */
+  --clr-red:   #ef4444;
+  --clr-green: #22c55e;
+  --clr-amber: #f59e0b;
+
+  /* Radii */
+  --r:   12px;
+  --r-2: 20px;
+  --r-3: 28px;
+
+  /* Shadows */
+  --sh:   0 8px 32px rgba(0,0,0,0.4);
+  --sh-v: 0 4px 24px rgba(124,58,237,0.35);
+  --sh-c: 0 4px 24px rgba(6,182,212,0.3);
+
+  /* Typography */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
