@@ -1,4 +1,4 @@
-// src/main.jsx
+// src/main.jsx  —  Cubiny v2
 import React    from "react";
 import ReactDOM from "react-dom/client";
 import { AuthProvider } from "./context/AuthContext";
@@ -8,7 +8,7 @@ import "./styles/globals.css";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
-      <App />
+      <App/>
     </AuthProvider>
   </React.StrictMode>,
 );

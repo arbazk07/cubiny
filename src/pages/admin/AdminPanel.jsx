@@ -1,83 +1,99 @@
-// src/pages/admin/AdminPanel.jsx
-// ─────────────────────────────────────────────────────────────────
-// Mission Control — full platform overview for admins only.
-// DCL: only accessible when role === "admin" (enforced by AppShell).
-// Driver flagging mirrors the PDF §5 trigger logic.
-// ─────────────────────────────────────────────────────────────────
-import { Activity, DollarSign, Users, Map, AlertTriangle } from "lucide-react";
+// src/pages/admin/AdminPanel.jsx  —  Cubiny v2
+import { useState, useEffect } from "react";
+import { Activity, DollarSign, Users, Map, AlertTriangle, TrendingUp, CheckCircle } from "lucide-react";
 import { StatCard }   from "../../components/ui/StatCard";
 import { StatusPill } from "../../components/ui/StatusPill";
 import { Avatar }     from "../../components/ui/Avatar";
-import {
-  MOCK_PLATFORM_STATS,
-  MOCK_ACTIVE_RIDES,
-  MOCK_FLAGGED_DRIVERS,
-  MOCK_REVENUE_BY_METHOD,
-} from "../../data/mockData";
+import { Button }     from "../../components/ui/Button";
+import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { getPlatformStats, getActiveRides, getFlaggedDrivers, getRevenueByMethod, updateDriverStatus } from "../../services/mockService";
 
 export function AdminPanel() {
+  const [stats,    setStats]   = useState(null);
+  const [rides,    setRides]   = useState([]);
+  const [flagged,  setFlagged] = useState([]);
+  const [revenue,  setRevenue] = useState([]);
+  const [loading,  setLoad]    = useState(true);
+  const [updating, setUpdating]= useState(null);
+
+  useEffect(()=>{
+    Promise.all([
+      getPlatformStats(),
+      getActiveRides(),
+      getFlaggedDrivers(),
+      getRevenueByMethod(),
+    ]).then(([s,r,f,rv])=>{ setStats(s); setRides(r); setFlagged(f); setRevenue(rv); setLoad(false); });
+  },[]);
+
+  const handleSuspend = async (driverId) => {
+    setUpdating(driverId);
+    await updateDriverStatus(driverId, "Suspended");
+    setFlagged(prev=>prev.map(d=>d.id===driverId?{...d,accountStatus:"Suspended"}:d));
+    setUpdating(null);
+  };
+
+  if (loading) return <LoadingSpinner label="Loading Mission Control…"/>;
+
+  const maxRev = Math.max(...rides.map(r=>r.fare));
+
   return (
-    <div className="mesh-bg" style={{ padding: 28, overflowY: "auto", height: "100vh", display: "flex", flexDirection: "column", gap: 24 }}>
-
+    <div className="mesh-subtle" style={{ padding:28, overflowY:"auto", height:"100vh", display:"flex", flexDirection:"column", gap:22 }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>Mission Control</h2>
-          <p style={{ fontSize: 12, color: "var(--clr-txt-2)" }}>Live platform overview · {new Date().toLocaleDateString()}</p>
+          <h2 style={{ fontFamily:"var(--font-d)", fontSize:22, letterSpacing:"-0.02em" }}>Mission Control</h2>
+          <p style={{ fontSize:12, color:"var(--t3)", marginTop:3 }}>Live platform overview · {new Date().toLocaleDateString("en-PK",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 20, padding: "6px 14px" }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--clr-green)", animation: "pulse 1.5s ease infinite" }} />
-          <span style={{ fontSize: 12, color: "#4ade80", fontWeight: 600 }}>Live</span>
+        <div style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(34,197,94,0.08)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:100, padding:"8px 16px" }}>
+          <div style={{ width:7, height:7, borderRadius:"50%", background:"var(--grn)", animation:"ping-sm 1.5s ease-out infinite" }}/>
+          <span style={{ fontSize:12, color:"#4ade80", fontWeight:600 }}>Live</span>
         </div>
       </div>
 
-      {/* Stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12 }}>
-        <StatCard icon={DollarSign} label="Total Revenue"  value={`Rs. ${MOCK_PLATFORM_STATS.totalRevenue.toLocaleString()}`}  color="green"  />
-        <StatCard icon={Activity}   label="Active Rides"   value={String(MOCK_PLATFORM_STATS.activeRides)}                      color="cyan"   />
-        <StatCard icon={Users}      label="Drivers"        value={MOCK_PLATFORM_STATS.registeredDrivers.toLocaleString()}       color="violet" />
-        <StatCard icon={Users}      label="Riders"         value={MOCK_PLATFORM_STATS.registeredRiders.toLocaleString()}        color="amber"  />
-        <StatCard icon={DollarSign} label="Today's Rev"    value={`Rs. ${MOCK_PLATFORM_STATS.todayRevenue.toLocaleString()}`}  color="cyan"   />
+      {/* Stats */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))", gap:12 }}>
+        <StatCard icon={DollarSign} label="Total Revenue"  value={`Rs. ${(stats.totalRevenue/1000).toFixed(0)}K`}   color="green"  trend={8}/>
+        <StatCard icon={Activity}   label="Active Rides"   value={String(stats.activeRides)}                        color="cyan"   trend={15}/>
+        <StatCard icon={Users}      label="Drivers"        value={stats.registeredDrivers.toLocaleString()}         color="violet" />
+        <StatCard icon={Users}      label="Riders"         value={stats.registeredRiders.toLocaleString()}          color="amber"  trend={22}/>
+        <StatCard icon={DollarSign} label="Today"          value={`Rs. ${(stats.todayRevenue/1000).toFixed(1)}K`}  color="cyan"   />
       </div>
 
-      {/* Live rides table */}
-      <div className="glass" style={{ padding: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16 }}>Live Rides</h3>
-          <span style={{ fontSize: 12, color: "var(--clr-txt-2)" }}>{MOCK_ACTIVE_RIDES.length} active</span>
+      {/* Live rides */}
+      <div className="glass-sm" style={{ padding:24 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+          <div>
+            <h3 style={{ fontFamily:"var(--font-d)", fontSize:16 }}>Live Rides</h3>
+            <p style={{ fontSize:12, color:"var(--t3)", marginTop:2 }}>{rides.length} active now</p>
+          </div>
+          <div style={{ display:"flex", gap:6 }}>
+            {["All","In Progress","Requested"].map(f=>(
+              <button key={f} style={{ padding:"5px 10px", borderRadius:"var(--r1)", border:"1px solid var(--b1)", background:"var(--s1)", color:"var(--t3)", fontSize:11, cursor:"pointer", fontFamily:"var(--font-b)" }}>{f}</button>
+            ))}
+          </div>
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {MOCK_ACTIVE_RIDES.map((ride) => (
-            <div
-              key={ride.id}
-              style={{
-                display:        "flex",
-                alignItems:     "center",
-                justifyContent: "space-between",
-                padding:        "14px 16px",
-                background:     "var(--clr-sur)",
-                borderRadius:   12,
-                border:         "1px solid var(--clr-bor)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ background: "var(--clr-sur-2)", borderRadius: 8, padding: 8 }}>
-                  <Map size={14} color="var(--clr-violet-3)" />
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {rides.map(ride=>(
+            <div key={ride.id} style={{
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              padding:"14px 16px", background:"var(--s1)", borderRadius:"var(--r2)", border:"1px solid var(--b1)",
+              transition:"border-color 0.15s",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ background:"rgba(109,40,217,0.1)", borderRadius:8, padding:8, border:"1px solid rgba(109,40,217,0.2)" }}>
+                  <Map size={13} color="var(--v3)"/>
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>{ride.rider} → {ride.driver}</div>
-                  <div style={{ fontSize: 11, color: "var(--clr-txt-3)" }}>{ride.from} → {ride.to}</div>
+                  <div style={{ fontSize:13, fontWeight:600 }}>{ride.rider} → {ride.driver}</div>
+                  <div style={{ fontSize:11, color:"var(--t4)", marginTop:1 }}>{ride.from} → {ride.to}</div>
                   {ride.surgeApplied && (
-                    <div style={{ fontSize: 10, color: "var(--clr-amber)", marginTop: 2 }}>
-                      ⚡ Surge ×{ride.surgeMultiplier}
-                    </div>
+                    <div style={{ fontSize:10, color:"var(--amb)", marginTop:1 }}>⚡ Surge ×{ride.surgeMultiplier} applied</div>
                   )}
                 </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                <StatusPill status={ride.status} />
-                <span style={{ fontSize: 11, color: "var(--clr-txt-3)" }}>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5 }}>
+                <StatusPill status={ride.status}/>
+                <span style={{ fontSize:11, color:"var(--t4)", fontFamily:"var(--font-m)" }}>
                   Rs. {ride.fare} · {ride.elapsedTime}
                 </span>
               </div>
@@ -86,40 +102,45 @@ export function AdminPanel() {
         </div>
       </div>
 
-      {/* Flagged drivers (PDF §5 trigger output) */}
-      <div className="glass" style={{ padding: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16 }}>Flagged Drivers</h3>
-          <AlertTriangle size={14} color="var(--clr-amber)" />
+      {/* Flagged drivers */}
+      <div className="glass-sm" style={{ padding:24 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+          <div>
+            <h3 style={{ fontFamily:"var(--font-d)", fontSize:16 }}>Flagged Drivers</h3>
+            <p style={{ fontSize:12, color:"var(--t3)", marginTop:2 }}>Auto-flagged by rating trigger (below 3.5★)</p>
+          </div>
+          <AlertTriangle size={15} color="var(--amb)"/>
         </div>
-
-        {MOCK_FLAGGED_DRIVERS.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--clr-txt-3)" }}>No flagged drivers — all ratings above 3.5 ★</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {MOCK_FLAGGED_DRIVERS.map((d) => (
-              <div
-                key={d.id}
-                style={{
-                  display:        "flex",
-                  alignItems:     "center",
-                  justifyContent: "space-between",
-                  padding:        "14px 16px",
-                  background:     "rgba(245,158,11,0.06)",
-                  borderRadius:   12,
-                  border:         "1px solid rgba(245,158,11,0.2)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Avatar initials={d.name.split(" ").map((n) => n[0]).join("")} size={36} />
+        {flagged.length===0 ? (
+          <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 0", color:"var(--t4)", fontSize:13 }}>
+            <CheckCircle size={15} color="var(--grn)"/> All drivers rated above threshold
+          </div>
+        ):(
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {flagged.map(d=>(
+              <div key={d.id} style={{
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"14px 16px", background:"rgba(245,158,11,0.05)",
+                borderRadius:"var(--r2)", border:"1px solid rgba(245,158,11,0.18)",
+              }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <Avatar initials={d.name.split(" ").map(n=>n[0]).join("")} size={38}/>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{d.name}</div>
-                    <div style={{ fontSize: 11, color: "var(--clr-txt-3)" }}>{d.id} · {d.trips} trips</div>
+                    <div style={{ fontSize:13, fontWeight:600 }}>{d.name}</div>
+                    <div style={{ fontSize:11, color:"var(--t4)", marginTop:1 }}>
+                      <span style={{ fontFamily:"var(--font-m)" }}>{d.id}</span> · {d.trips} trips
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "#f87171" }}>★ {d.rating}</span>
-                  <StatusPill status="Flagged" />
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ textAlign:"right" }}>
+                    <div style={{ fontSize:14, fontWeight:700, color:"#fb7185" }}>★ {d.rating}</div>
+                    <div style={{ fontSize:10, color:"var(--t4)" }}>{d.issue}</div>
+                  </div>
+                  <Button variant="danger" size="sm" loading={updating===d.id}
+                    onClick={()=>handleSuspend(d.id)} disabled={d.accountStatus==="Suspended"}>
+                    {d.accountStatus==="Suspended"?"Suspended":"Suspend"}
+                  </Button>
                 </div>
               </div>
             ))}
@@ -127,31 +148,35 @@ export function AdminPanel() {
         )}
       </div>
 
-      {/* Revenue by payment method */}
-      <div className="glass" style={{ padding: 24 }}>
-        <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16, marginBottom: 18 }}>Revenue by Payment Method</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {MOCK_REVENUE_BY_METHOD.map((r, i) => (
+      {/* Revenue by method */}
+      <div className="glass-sm" style={{ padding:24 }}>
+        <h3 style={{ fontFamily:"var(--font-d)", fontSize:16, marginBottom:20 }}>Revenue by Payment Method</h3>
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {revenue.map((r,i)=>(
             <div key={r.method}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 }}>
-                <span>{r.method}</span>
-                <span style={{ fontWeight: 600 }}>{r.pct}%</span>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8, fontSize:13 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ width:8, height:8, borderRadius:"50%", background:r.color }}/>
+                  <span>{r.method}</span>
+                </div>
+                <span style={{ fontWeight:700, fontFamily:"var(--font-m)", color:"var(--t1)" }}>{r.pct}%</span>
               </div>
-              <div style={{ height: 6, borderRadius: 6, background: "var(--clr-sur-2)" }}>
+              <div style={{ height:6, borderRadius:6, background:"var(--s2)" }}>
                 <div style={{
-                  height:       "100%",
-                  borderRadius: 6,
-                  width:        `${r.pct}%`,
-                  background:   i === 0
-                    ? "linear-gradient(90deg,var(--clr-violet),var(--clr-violet-2))"
-                    : i === 1
-                      ? "linear-gradient(90deg,var(--clr-cyan),var(--clr-cyan-2))"
-                      : "linear-gradient(90deg,#f59e0b,#fcd34d)",
-                  transition:   "width 1s ease",
-                }} />
+                  height:"100%", borderRadius:6, width:`${r.pct}%`,
+                  background: i===0 ? "linear-gradient(90deg,var(--v),var(--v2))"
+                            : i===1 ? "linear-gradient(90deg,var(--c),var(--c2))"
+                            : "linear-gradient(90deg,#d97706,#f59e0b)",
+                  transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)",
+                  transitionDelay:`${i*0.15}s`,
+                }}/>
               </div>
             </div>
           ))}
+        </div>
+        <div style={{ marginTop:20, paddingTop:16, borderTop:"1px solid var(--b1)", display:"flex", justifyContent:"space-between", fontSize:12, color:"var(--t3)" }}>
+          <span>Total platform revenue</span>
+          <span style={{ fontWeight:700, fontFamily:"var(--font-d)", color:"var(--grn)", fontSize:14 }}>Rs. {stats.totalRevenue.toLocaleString()}</span>
         </div>
       </div>
     </div>

@@ -1,147 +1,155 @@
-// src/pages/driver/DriverDashboard.jsx
-// ─────────────────────────────────────────────────────────────────
-// Go Live screen with online/offline toggle.
-// Incoming ride popup simulates a WebSocket push event.
-// Rating trigger: drivers below 3.5 are auto-flagged (PDF §5).
-// ─────────────────────────────────────────────────────────────────
+// src/pages/driver/DriverDashboard.jsx  —  Cubiny v2
 import { useState, useEffect } from "react";
-import { Shield, DollarSign, TrendingUp, Car, Star, CheckCircle, XCircle, MapPin, Navigation } from "lucide-react";
-import { useAuth }    from "../../hooks/useAuth";
-import { Avatar }     from "../../components/ui/Avatar";
-import { StatCard }   from "../../components/ui/StatCard";
-import { Button }     from "../../components/ui/Button";
-import { StatusPill } from "../../components/ui/StatusPill";
-import { MOCK_INCOMING_RIDE, MOCK_EARNINGS_CHART } from "../../data/mockData";
-
-// ── Rating trigger (PDF §5) ──────────────────────────────────────
-// Mirrors: AFTER UPDATE ON drivers FOR EACH ROW
-//   IF NEW.averageRating < 3.5 THEN flag the account
-const RATING_THRESHOLD = 3.5;
-function checkRatingTrigger(rating) {
-  return rating < RATING_THRESHOLD;
-}
+import { Shield, DollarSign, TrendingUp, Car, Star, CheckCircle, XCircle, MapPin, Navigation, Zap } from "lucide-react";
+import { useAuth }          from "../../hooks/useAuth";
+import { Avatar }           from "../../components/ui/Avatar";
+import { StatCard }         from "../../components/ui/StatCard";
+import { Button }           from "../../components/ui/Button";
+import { StatusPill }       from "../../components/ui/StatusPill";
+import { MOCK_EARNINGS_CHART, MOCK_INCOMING_RIDE } from "../../data/mockData";
+import { setDriverAvailability, acceptRide as svcAccept, declineRide as svcDecline } from "../../services/mockService";
+import { checkDriverRatingTrigger } from "../../services/ratingService";
 
 export function DriverDashboard() {
-  const { user }                      = useAuth();
-  const [isOnline,     setIsOnline]   = useState(false);
-  const [showRequest,  setShowRequest]= useState(false);
-  const [activeRide,   setActiveRide] = useState(null);
-  const [countdown,    setCountdown]  = useState(30);
+  const { user }                        = useAuth();
+  const [isOnline,   setIsOnline]       = useState(false);
+  const [showReq,    setShowReq]        = useState(false);
+  const [activeRide, setActiveRide]     = useState(null);
+  const [countdown,  setCountdown]      = useState(30);
+  const [toggling,   setToggling]       = useState(false);
 
-  const isFlagged = checkRatingTrigger(user?.rating ?? 5);
-  const maxEarning = Math.max(...MOCK_EARNINGS_CHART.map((e) => e.amount));
+  const { isFlagged } = checkDriverRatingTrigger(user?.rating ?? 5);
+  const maxEarning    = Math.max(...MOCK_EARNINGS_CHART.map(e=>e.amount));
 
-  // Simulate incoming ride push after going online
-  useEffect(() => {
-    if (!isOnline) { setShowRequest(false); return; }
-    const t = setTimeout(() => setShowRequest(true), 3000);
-    return () => clearTimeout(t);
-  }, [isOnline]);
+  // Simulate incoming ride push
+  useEffect(()=>{
+    if (!isOnline) { setShowReq(false); return; }
+    const t = setTimeout(()=>setShowReq(true), 3500);
+    return ()=>clearTimeout(t);
+  },[isOnline]);
 
-  // Countdown timer
-  useEffect(() => {
-    if (!showRequest) { setCountdown(30); return; }
-    if (countdown <= 0) { setShowRequest(false); return; }
-    const t = setInterval(() => setCountdown((c) => c - 1), 1000);
-    return () => clearInterval(t);
-  }, [showRequest, countdown]);
+  useEffect(()=>{
+    if (!showReq) { setCountdown(30); return; }
+    if (countdown<=0) { setShowReq(false); return; }
+    const t = setInterval(()=>setCountdown(c=>c-1), 1000);
+    return ()=>clearInterval(t);
+  },[showReq, countdown]);
 
-  const acceptRide  = () => { setActiveRide(MOCK_INCOMING_RIDE); setShowRequest(false); };
-  const declineRide = () => { setShowRequest(false); setCountdown(30); };
+  const handleToggle = async () => {
+    setToggling(true);
+    const next = !isOnline;
+    await setDriverAvailability(user?.id, next?"Online":"Offline");
+    setIsOnline(next);
+    if (!next) setActiveRide(null);
+    setToggling(false);
+  };
+
+  const handleAccept = async () => {
+    await svcAccept(MOCK_INCOMING_RIDE.id);
+    setActiveRide(MOCK_INCOMING_RIDE); setShowReq(false);
+  };
+  const handleDecline = async () => {
+    await svcDecline(MOCK_INCOMING_RIDE.id);
+    setShowReq(false); setCountdown(30);
+  };
 
   return (
-    <div className="mesh-bg" style={{ padding: 28, overflowY: "auto", height: "100vh", display: "flex", flexDirection: "column", gap: 24 }}>
+    <div className="mesh-subtle" style={{ padding:28, overflowY:"auto", height:"100vh", display:"flex", flexDirection:"column", gap:22 }}>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between" }}>
         <div>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22 }}>Driver Hub</h2>
-          <p style={{ fontSize: 12, color: "var(--clr-txt-2)" }}>
-            {user?.name} · {user?.vehicle?.make} {user?.vehicle?.model}
-          </p>
+          <h2 style={{ fontFamily:"var(--font-d)", fontSize:22, letterSpacing:"-0.02em" }}>Driver Hub</h2>
+          <p style={{ fontSize:12, color:"var(--t3)", marginTop:3 }}>{user?.vehicle?.make} {user?.vehicle?.model} · {user?.vehicle?.plate}</p>
         </div>
         {user?.verified && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 20, padding: "6px 14px" }}>
-            <Shield size={12} color="var(--clr-green)" />
-            <span style={{ fontSize: 12, color: "#4ade80", fontWeight: 600 }}>Verified Driver</span>
+          <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.25)", borderRadius:100, padding:"7px 14px" }}>
+            <Shield size={12} color="var(--grn)"/><span style={{ fontSize:12, color:"#4ade80", fontWeight:600 }}>Verified</span>
           </div>
         )}
       </div>
 
-      {/* Flagged warning (PDF §5 trigger) */}
+      {/* Flagged warning */}
       {isFlagged && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "var(--r)", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 18 }}>⚠️</span>
+        <div style={{ background:"rgba(244,63,94,0.08)", border:"1px solid rgba(244,63,94,0.25)", borderRadius:"var(--r2)", padding:"14px 18px", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ fontSize:20 }}>⚠️</div>
           <div>
-            <div style={{ fontWeight: 600, color: "#f87171", fontSize: 14 }}>Account Flagged</div>
-            <div style={{ fontSize: 12, color: "var(--clr-txt-2)" }}>Your rating is below {RATING_THRESHOLD} stars. Admin has been notified.</div>
+            <div style={{ fontWeight:600, color:"#fb7185", fontSize:14, marginBottom:2 }}>Account Flagged by System</div>
+            <div style={{ fontSize:12, color:"var(--t3)" }}>Your average rating is below 3.5★. Admin has been automatically notified per platform policy.</div>
           </div>
         </div>
       )}
 
       {/* Online toggle */}
-      <div className="glass" style={{ padding: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 18, marginBottom: 4, color: isOnline ? "#4ade80" : "var(--clr-txt-2)" }}>
-            {isOnline ? "You're Online" : "You're Offline"}
+      <div className="glass-sm" style={{ padding:24 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontFamily:"var(--font-d)", fontSize:20, marginBottom:4, letterSpacing:"-0.02em" }}>
+              {isOnline
+                ? <span style={{ color:"#4ade80" }}>You're Live</span>
+                : <span style={{ color:"var(--t3)" }}>You're Offline</span>
+              }
+            </div>
+            <p style={{ fontSize:13, color:"var(--t3)" }}>
+              {isOnline ? "Receiving ride requests in your area" : "Toggle the switch to go online"}
+            </p>
           </div>
-          <p style={{ fontSize: 13, color: "var(--clr-txt-2)" }}>
-            {isOnline ? "Receiving ride requests in your area" : "Toggle to start accepting rides"}
-          </p>
+          <button
+            onClick={handleToggle} disabled={toggling}
+            style={{
+              position:"relative", width:76, height:40, borderRadius:100, border:"none", cursor:"pointer",
+              background: isOnline ? "linear-gradient(135deg,#15803d,#22c55e)" : "var(--s3)",
+              transition:"all 0.35s", animation: isOnline ? "glowG 2.5s ease infinite" : "none",
+              opacity: toggling ? 0.7 : 1,
+            }}
+          >
+            <div style={{
+              position:"absolute", top:5, left: isOnline ? 40 : 5,
+              width:30, height:30, borderRadius:"50%", background:"#fff",
+              transition:"left 0.3s cubic-bezier(0.4,0,0.2,1)",
+              boxShadow:"0 2px 8px rgba(0,0,0,0.3)",
+            }}/>
+          </button>
         </div>
-        <button
-          onClick={() => { setIsOnline((v) => !v); setActiveRide(null); }}
-          style={{
-            position:   "relative",
-            width:      72, height: 36,
-            borderRadius: 100,
-            border:     "none",
-            cursor:     "pointer",
-            background: isOnline ? "linear-gradient(135deg,#16a34a,#22c55e)" : "var(--clr-sur-2)",
-            transition: "all 0.3s",
-            animation:  isOnline ? "glowGreen 2s ease infinite" : "none",
-            boxShadow:  isOnline ? "0 0 20px rgba(34,197,94,0.4)" : "none",
-          }}
-        >
-          <div style={{
-            position:   "absolute",
-            top: 4, left: isOnline ? 38 : 4,
-            width: 28, height: 28,
-            borderRadius: "50%",
-            background:  "#fff",
-            transition:  "left 0.3s cubic-bezier(0.4,0,0.2,1)",
-          }} />
-        </button>
+        {isOnline && (
+          <div style={{ marginTop:14, paddingTop:14, borderTop:"1px solid var(--b1)", display:"flex", gap:20 }}>
+            {[["Distance","0 km"],["Time Online","0 min"],["Requests","0"]].map(([l,v])=>(
+              <div key={l}>
+                <div style={{ fontSize:10, color:"var(--t4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{l}</div>
+                <div style={{ fontSize:15, fontWeight:700, fontFamily:"var(--font-d)", color:"var(--t2)" }}>{v}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 12 }}>
-        <StatCard icon={DollarSign} label="This Week"   value={`Rs. ${user?.weeklyEarnings?.toLocaleString()}`} color="green"  />
-        <StatCard icon={TrendingUp} label="All Time"    value={`Rs. ${user?.earnings?.toLocaleString()}`}       color="violet" />
-        <StatCard icon={Car}        label="Total Trips" value={String(user?.totalTrips)}                        color="cyan"   />
-        <StatCard icon={Star}       label="Rating"      value={`${user?.rating} ★`}                            color="amber"  />
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))", gap:12 }}>
+        <StatCard icon={DollarSign} label="This Week" value={`Rs. ${user?.weeklyEarnings?.toLocaleString()}`} color="green" trend={12}/>
+        <StatCard icon={TrendingUp} label="All Time"  value={`Rs. ${user?.earnings?.toLocaleString()}`}       color="violet"/>
+        <StatCard icon={Car}        label="Trips"     value={String(user?.totalTrips)}                        color="cyan" trend={5}/>
+        <StatCard icon={Star}       label="Rating"    value={`${user?.rating}★`}                             color="amber"/>
       </div>
 
       {/* Earnings chart */}
-      <div className="glass" style={{ padding: 24 }}>
-        <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16, marginBottom: 20 }}>Weekly Earnings</h3>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 120 }}>
-          {MOCK_EARNINGS_CHART.map((e, i) => (
-            <div key={e.day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-              <div style={{ fontSize: 9, color: "var(--clr-txt-3)" }}>{e.amount}</div>
+      <div className="glass-sm" style={{ padding:24 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+          <h3 style={{ fontFamily:"var(--font-d)", fontSize:16 }}>Weekly Earnings</h3>
+          <span style={{ fontSize:12, color:"var(--t4)", fontFamily:"var(--font-m)" }}>Rs. {user?.weeklyEarnings?.toLocaleString()}</span>
+        </div>
+        <div style={{ display:"flex", alignItems:"flex-end", gap:6, height:100 }}>
+          {MOCK_EARNINGS_CHART.map((e,i)=>(
+            <div key={e.day} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
               <div style={{
-                width:      "100%",
-                borderRadius: "6px 6px 0 0",
-                height:     `${(e.amount / maxEarning) * 88}px`,
-                background: i === 4
-                  ? "linear-gradient(180deg,var(--clr-violet-2),var(--clr-violet))"
-                  : "linear-gradient(180deg,rgba(124,58,237,0.4),rgba(124,58,237,0.1))",
-                boxShadow:  i === 4 ? "var(--sh-v)" : "none",
-                transition: "height 0.5s ease",
-              }} />
-              <div style={{ fontSize: 10, color: i === 4 ? "var(--clr-violet-3)" : "var(--clr-txt-3)", fontWeight: i === 4 ? 600 : 400 }}>
-                {e.day}
-              </div>
+                width:"100%", borderRadius:"5px 5px 0 0",
+                height:`${(e.amount/maxEarning)*80}px`,
+                background: i===4
+                  ? "linear-gradient(180deg,var(--v2),var(--v))"
+                  : `rgba(109,40,217,${0.15+i*0.03})`,
+                boxShadow: i===4?"var(--sh-v)":"none",
+                transition:"height 0.8s cubic-bezier(0.4,0,0.2,1)",
+              }}/>
+              <div style={{ fontSize:10, color: i===4?"var(--v3)":"var(--t4)", fontWeight: i===4?600:400 }}>{e.day}</div>
             </div>
           ))}
         </div>
@@ -149,84 +157,66 @@ export function DriverDashboard() {
 
       {/* Active ride */}
       {activeRide && (
-        <div className="glass-violet animate-fade-up" style={{ padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15 }}>Active Ride</h3>
-            <StatusPill status="In Progress" />
+        <div className="glass-v animate-fade-up" style={{ padding:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <h3 style={{ fontFamily:"var(--font-d)", fontSize:15 }}>Active Ride</h3>
+            <StatusPill status="In Progress"/>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--clr-txt-2)" }}>
-            <span>{activeRide.rider}</span>
-            <span>Rs. {activeRide.fare}</span>
-            <span>{activeRide.distanceKm} km</span>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"var(--t2)" }}>
+            <span>{activeRide.rider}</span><span>Rs. {activeRide.fare}</span><span>{activeRide.distanceKm} km</span>
           </div>
         </div>
       )}
 
-      {/* ── Incoming ride popup ── */}
-      {showRequest && (
+      {/* Incoming ride overlay */}
+      {showReq && (
         <div style={{
-          position:       "fixed",
-          inset:          0,
-          zIndex:         999,
-          display:        "flex",
-          alignItems:     "center",
-          justifyContent: "center",
-          background:     "rgba(0,0,0,0.75)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
+          position:"fixed", inset:0, zIndex:999,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(2,2,16,0.82)", backdropFilter:"blur(16px)", WebkitBackdropFilter:"blur(16px)",
         }}>
-          <div className="glass animate-bounce-in" style={{ width: "100%", maxWidth: 380, margin: 20 }}>
-            {/* Coloured header */}
-            <div style={{
-              background:   "linear-gradient(135deg,var(--clr-violet),var(--clr-cyan))",
-              borderRadius: "var(--r-2) var(--r-2) 0 0",
-              padding:      "20px 24px",
-              position:     "relative",
-            }}>
-              <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.3)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "#fff" }}>
+          <div className="glass animate-bounce-in" style={{ width:"100%", maxWidth:400, margin:20, overflow:"hidden" }}>
+            {/* Gradient header */}
+            <div style={{ background:"linear-gradient(135deg,var(--v),var(--c))", padding:"22px 26px", position:"relative" }}>
+              <div style={{ position:"absolute", top:12, right:12, background:"rgba(0,0,0,0.3)", borderRadius:100, padding:"5px 14px", fontSize:12, color:"rgba(255,255,255,0.9)", fontFamily:"var(--font-m)", fontWeight:600 }}>
                 {countdown}s
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>NEW RIDE REQUEST</div>
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "#fff" }}>Rs. {MOCK_INCOMING_RIDE.fare}</h3>
+              {/* Progress arc */}
+              <svg width="36" height="36" style={{ position:"absolute", top:10, right:10 }}>
+                <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2"/>
+                <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2"
+                  strokeDasharray={`${(countdown/30)*100.5} 100.5`} strokeLinecap="round"
+                  transform="rotate(-90 18 18)"/>
+              </svg>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.1em" }}>New Ride Request</div>
+              <div style={{ fontSize:32, fontWeight:800, color:"#fff", fontFamily:"var(--font-d)", letterSpacing:"-0.02em" }}>Rs. {MOCK_INCOMING_RIDE.fare}</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.7)", marginTop:4 }}>{MOCK_INCOMING_RIDE.distanceKm} km away · {MOCK_INCOMING_RIDE.driverEta}</div>
             </div>
 
-            <div style={{ padding: 24 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                <Avatar initials="FZ" size={44} />
+            <div style={{ padding:24 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+                <Avatar initials="FZ" size={48}/>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{MOCK_INCOMING_RIDE.rider}</div>
-                  <div style={{ fontSize: 12, color: "var(--clr-txt-2)", display: "flex", alignItems: "center", gap: 4 }}>
-                    <Star size={11} color="var(--clr-amber)" fill="var(--clr-amber)" />
-                    {MOCK_INCOMING_RIDE.riderRating} rating
+                  <div style={{ fontWeight:700, fontSize:15 }}>{MOCK_INCOMING_RIDE.rider}</div>
+                  <div style={{ fontSize:12, color:"var(--t3)", display:"flex", alignItems:"center", gap:4, marginTop:2 }}>
+                    <Star size={11} color="var(--amb)" fill="var(--amb)"/> {MOCK_INCOMING_RIDE.riderRating} rating
                   </div>
                 </div>
               </div>
 
-              {[
-                { label: "Pickup",    val: MOCK_INCOMING_RIDE.from, icon: MapPin,     c: "var(--clr-cyan-2)"   },
-                { label: "Drop-off",  val: MOCK_INCOMING_RIDE.to,   icon: Navigation, c: "var(--clr-violet-3)" },
-              ].map((r) => (
-                <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, padding: "10px 14px", background: "var(--clr-sur)", borderRadius: 10, border: "1px solid var(--clr-bor)" }}>
-                  <r.icon size={13} color={r.c} />
+              {[{label:"Pickup",val:MOCK_INCOMING_RIDE.from,dot:"var(--c2)"},{label:"Drop-off",val:MOCK_INCOMING_RIDE.to,dot:"var(--v2)"}].map(r=>(
+                <div key={r.label} style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 14px", background:"var(--s1)", borderRadius:"var(--r2)", marginBottom:8, border:"1px solid var(--b1)" }}>
+                  <div style={{ width:8, height:8, borderRadius:"50%", background:r.dot, flexShrink:0 }}/>
                   <div>
-                    <div style={{ fontSize: 10, color: "var(--clr-txt-3)" }}>{r.label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{r.val}</div>
+                    <div style={{ fontSize:10, color:"var(--t4)" }}>{r.label}</div>
+                    <div style={{ fontSize:13, fontWeight:500 }}>{r.val}</div>
                   </div>
                 </div>
               ))}
 
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--clr-txt-2)", marginBottom: 20, padding: "10px 14px", background: "var(--clr-sur)", borderRadius: 10 }}>
-                <span>Distance: {MOCK_INCOMING_RIDE.distanceKm} km</span>
-                <span>ETA: {MOCK_INCOMING_RIDE.driverEta}</span>
-              </div>
-
-              <div style={{ display: "flex", gap: 12 }}>
-                <Button variant="danger"  style={{ flex: 1 }} onClick={declineRide}>
-                  <XCircle size={16} /> Decline
-                </Button>
-                <Button variant="primary" style={{ flex: 1 }} onClick={acceptRide}>
-                  <CheckCircle size={16} /> Accept
-                </Button>
+              <div style={{ display:"flex", gap:10, marginTop:18 }}>
+                <Button variant="danger"  style={{ flex:1 }} onClick={handleDecline}><XCircle size={15}/> Decline</Button>
+                <Button variant="primary" style={{ flex:1 }} onClick={handleAccept}><CheckCircle size={15}/> Accept</Button>
               </div>
             </div>
           </div>

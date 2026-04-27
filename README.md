@@ -1,62 +1,70 @@
-# IzenRides — Iteration 1: Modular React Architecture
+# Cubiny — Iteration 2: API & Service Layer
 
-Premium ride-hailing frontend built with Vite + React + Tailwind CSS.
+Premium ride-hailing platform. Rebranded from IzenRides to **Cubiny**.
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Start dev server
 npm run dev
-
-# 3. Open browser
-# http://localhost:3000
+# → http://localhost:3000
 ```
 
-## Login Credentials (Demo)
-Click any tab and press **Sign In** — no real credentials needed.
+## Demo Login
+Click any tab (Rider / Driver / Admin) → Sign In with any credentials.
 
-| Tab    | Access                                     |
-|--------|--------------------------------------------|
-| Rider  | Book rides, wallet, ratings, promos        |
-| Driver | Go Live toggle, earnings chart, vehicles   |
-| Admin  | Mission Control, live rides, flagged panel |
+## What's New in Iteration 2
 
-## Project Structure
+### Rebranding
+- App name: **Cubiny** throughout
+- New cube-grid logo (4-square motif)
+- Refined dark palette: deeper bg (#050510), cleaner type ramp
+- Split-panel auth page with feature highlights
 
-```
-src/
-├── components/
-│   ├── ui/          → Button, Input, Modal, StatCard, Avatar, StatusPill
-│   ├── layout/      → Sidebar, AppShell (DCL enforcement)
-│   └── map/         → MockMap SVG (replace with Leaflet in Iteration 4)
-├── pages/
-│   ├── Auth/        → AuthPage, LoginForm
-│   ├── rider/       → RiderDashboard, HistoryPage, WalletPage, RatingsPage, PromoPage, ComplaintsPage
-│   ├── driver/      → DriverDashboard, EarningsPage, VehiclesPage, DriverRatingsPage
-│   └── admin/       → AdminPanel
-├── context/         → AuthContext (role-based state)
-├── hooks/           → useAuth
-├── styles/          → globals.css, tokens.css
-└── data/            → mockData.js (replaced by /services in Iteration 2)
+### Service Layer (`/src/services/`)
+| File | Purpose |
+|---|---|
+| `api.js` | Axios instance with JWT interceptor, 401 handler, dev logging |
+| `mockService.js` | Async wrappers for all data — mirrors real API signatures |
+| `fareService.js` | Surge pricing formula from PDF §4 |
+| `ratingService.js` | Driver flag trigger logic from PDF §5 |
+| `index.js` | Barrel export |
+
+### UI/UX Upgrades
+- **Auth**: Two-column layout — branding panel + login form
+- **StatCards**: Corner glow, trend indicators (↑/↓%)
+- **Sidebar**: Cube logo, hover red on logout, active dot indicator
+- **DriverDashboard**: Circular countdown timer, session stats strip
+- **AdminPanel**: Suspend button per flagged driver (calls mockService)
+- **WalletPage**: Coloured debit/credit transaction rows
+- **RatingsPage**: Star distribution bar chart
+- **PromoPage**: Copy-to-clipboard button on codes
+- **LoadingSpinner**: Consistent async loading state across all pages
+
+### Iteration 3 Swap Guide
+Every `mockService` function has a comment showing the real `api.js` call:
+```js
+// Before (Iteration 2):
+export async function login(role) { ... MOCK_USERS[role] ... }
+
+// After (Iteration 3):
+export async function login(email, password) {
+  return api.post('/auth/login', { email, password });
+}
 ```
 
 ## PDF Module Coverage
-
-| PDF Module                     | Implementation                                     |
-|--------------------------------|----------------------------------------------------|
-| §1 User Management (DCL)       | AuthContext roles + AppShell PAGE_REGISTRY         |
-| §2 Ride Management             | RiderDashboard state machine (6 states)            |
-| §3 Driver & Vehicle Management | DriverDashboard + VehiclesPage                     |
-| §4 Fare & Payment (Surge)      | calcFare() + getSurgeMultiplier() in RiderDashboard|
-| §5 Ratings Trigger (<3.5)      | checkRatingTrigger() in DriverDashboard            |
-| §6 Admin Reports               | AdminPanel with live stats + flagged list          |
+| PDF Module | Implementation |
+|---|---|
+| §1 User Management (DCL) | AuthContext + AppShell PAGE_REGISTRY |
+| §2 Ride Management | RiderDashboard 6-state machine → mockService.requestRide() |
+| §3 Driver & Vehicle | DriverDashboard → setDriverAvailability(); VehiclesPage → registerVehicle() |
+| §4 Fare & Payment (Surge) | fareService.calcFare() + getSurgeMultiplier() |
+| §5 Ratings Trigger (<3.5★) | ratingService.checkDriverRatingTrigger() |
+| §6 Admin Reports | AdminPanel → getPlatformStats(), getFlaggedDrivers(), updateDriverStatus() |
 
 ## Iteration Roadmap
-
-- ✅ **Iteration 1** — Modular file structure (current)
-- ⬜ **Iteration 2** — API & Service layer (axios + mockService)
-- ⬜ **Iteration 3** — Full DB logic (surge pricing, triggers, DCL)
-- ⬜ **Iteration 4** — Electron desktop packaging
+- ✅ Iteration 1 — Modular file structure
+- ✅ **Iteration 2 — Service layer + Cubiny rebrand (current)**
+- ⬜ Iteration 3 — Real MySQL/Node.js backend connection
+- ⬜ Iteration 4 — Electron desktop packaging

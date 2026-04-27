@@ -1,11 +1,8 @@
-// src/context/AuthContext.jsx
-// ─────────────────────────────────────────────────────────────────
-// Manages authentication + DCL role enforcement.
-// Mirrors MySQL GRANT/REVOKE: each role flag gates page access.
-// Iteration 2: replace mock login with real JWT call via authService.
-// ─────────────────────────────────────────────────────────────────
+// src/context/AuthContext.jsx  —  Cubiny v2
+// Iteration 2: login/logout now go through mockService (async).
+// Iteration 3: mockService.login → api.post('/auth/login', { email, password })
 import { createContext, useState, useCallback, useMemo } from "react";
-import { MOCK_USERS } from "../data/mockData";
+import { login as svcLogin, logout as svcLogout } from "../services/mockService";
 
 export const AuthContext = createContext(null);
 
@@ -14,36 +11,29 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
-  // ── Login ──────────────────────────────────────────────────────
-  // Iteration 2: replace body with:
-  //   const res = await authService.login(email, password);
-  //   setUser(res.data.user);
-  //   localStorage.setItem('token', res.data.token);
   const login = useCallback(async (role) => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
-      await new Promise((r) => setTimeout(r, 1000));
-      const userData = MOCK_USERS[role];
-      if (!userData) throw new Error("Invalid credentials");
-      setUser(userData);
+      const { user: u, token } = await svcLogin(role);
+      // Persist token for api.js interceptor
+      localStorage.setItem("cubiny_token", token);
+      localStorage.setItem("cubiny_user",  JSON.stringify(u));
+      setUser(u);
     } catch (err) {
-      setError(err.message);
+      setError(err.message ?? "Login failed");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ── Logout ─────────────────────────────────────────────────────
-  // Iteration 2: also clear localStorage token + axios default headers
-  const logout = useCallback(() => {
-    setUser(null);
-    setError(null);
+  const logout = useCallback(async () => {
+    await svcLogout();
+    localStorage.removeItem("cubiny_token");
+    localStorage.removeItem("cubiny_user");
+    setUser(null); setError(null);
   }, []);
 
-  // ── DCL Role Flags ─────────────────────────────────────────────
-  // These mirror: GRANT SELECT ON rides TO rider_role;
-  //               GRANT ALL ON * TO admin_role; etc.
+  // DCL flags — mirror MySQL GRANT/REVOKE per role
   const isRider  = user?.role === "rider";
   const isDriver = user?.role === "driver";
   const isAdmin  = user?.role === "admin";

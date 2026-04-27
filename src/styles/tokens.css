@@ -1,49 +1,40 @@
-/* ── IzenRides Design Tokens ── */
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Brand */
-  --clr-violet:   #7c3aed;
-  --clr-violet-2: #a855f7;
-  --clr-violet-3: #c084fc;
-  --clr-cyan:     #06b6d4;
-  --clr-cyan-2:   #22d3ee;
-  --clr-cyan-3:   #67e8f9;
+  /* ── Brand ── */
+  --v:    #6d28d9;  --v2: #8b5cf6;  --v3: #a78bfa;  --v4: #c4b5fd;
+  --c:    #0891b2;  --c2: #06b6d4;  --c3: #22d3ee;  --c4: #67e8f9;
 
-  /* Backgrounds */
-  --clr-bg:   #06060f;
-  --clr-bg-2: #0d0d1f;
-  --clr-bg-3: #12122a;
+  /* ── Backgrounds ── */
+  --bg:   #050510;  --bg2: #0a0a1e;  --bg3: #0f0f28;  --bg4: #141435;
 
-  /* Surfaces */
-  --clr-sur:   rgba(255,255,255,0.04);
-  --clr-sur-2: rgba(255,255,255,0.08);
+  /* ── Surfaces ── */
+  --s1: rgba(255,255,255,0.03);
+  --s2: rgba(255,255,255,0.06);
+  --s3: rgba(255,255,255,0.10);
 
-  /* Borders */
-  --clr-bor:   rgba(255,255,255,0.08);
-  --clr-bor-2: rgba(255,255,255,0.15);
+  /* ── Borders ── */
+  --b1: rgba(255,255,255,0.06);
+  --b2: rgba(255,255,255,0.12);
+  --b3: rgba(255,255,255,0.20);
 
-  /* Text */
-  --clr-txt:   #f8f8fc;
-  --clr-txt-2: #a0a0c0;
-  --clr-txt-3: #5a5a7a;
+  /* ── Text ── */
+  --t1: #f0f0ff;  --t2: #9090b8;  --t3: #50507a;  --t4: #30304a;
 
-  /* Semantic */
-  --clr-red:   #ef4444;
-  --clr-green: #22c55e;
-  --clr-amber: #f59e0b;
+  /* ── Semantic ── */
+  --red: #f43f5e;  --grn: #22c55e;  --amb: #f59e0b;  --blu: #3b82f6;
 
-  /* Radii */
-  --r:   12px;
-  --r-2: 20px;
-  --r-3: 28px;
+  /* ── Radii ── */
+  --r1: 10px;  --r2: 16px;  --r3: 24px;  --r4: 32px;
 
-  /* Shadows */
-  --sh:   0 8px 32px rgba(0,0,0,0.4);
-  --sh-v: 0 4px 24px rgba(124,58,237,0.35);
-  --sh-c: 0 4px 24px rgba(6,182,212,0.3);
+  /* ── Shadows ── */
+  --sh-card:  0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  --sh-v:     0 4px 24px rgba(109,40,217,0.4);
+  --sh-c:     0 4px 24px rgba(8,145,178,0.4);
+  --sh-g:     0 4px 24px rgba(34,197,94,0.4);
 
-  /* Typography */
-  --font-display: 'Syne', sans-serif;
-  --font-body:    'DM Sans', sans-serif;
+  /* ── Typography ── */
+  --font-d: 'Syne', sans-serif;
+  --font-b: 'DM Sans', sans-serif;
+  --font-m: 'JetBrains Mono', monospace;
 }

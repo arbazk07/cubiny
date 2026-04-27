@@ -1,48 +1,59 @@
-// src/components/ui/Button.jsx
+// src/components/ui/Button.jsx  —  Cubiny v2
 import clsx from "clsx";
 
-const VARIANTS = {
-  primary:   "text-white border-none shadow-violet hover:-translate-y-px hover:shadow-[0_8px_32px_rgba(124,58,237,0.5)] active:scale-[0.98]",
-  secondary: "text-white border border-[var(--clr-bor-2)] hover:bg-white/10 active:scale-[0.98]",
-  cyan:      "text-white border-none shadow-cyan hover:-translate-y-px active:scale-[0.98]",
-  danger:    "text-red-400 border border-red-500/30 hover:bg-red-500/25 active:scale-[0.98]",
-  ghost:     "bg-transparent text-[var(--clr-txt-2)] border-none hover:text-white",
-};
-
-const BG = {
-  primary:   "linear-gradient(135deg, var(--clr-violet), var(--clr-violet-2))",
-  secondary: "var(--clr-sur-2)",
-  cyan:      "linear-gradient(135deg, var(--clr-cyan), #0891b2)",
-  danger:    "rgba(239,68,68,0.15)",
-  ghost:     "transparent",
+const STYLES = {
+  primary: {
+    bg: "linear-gradient(135deg,#6d28d9,#8b5cf6)",
+    cls: "text-white border-none shadow-v-md hover:shadow-v-lg hover:-translate-y-0.5 active:scale-[0.97]",
+  },
+  secondary: {
+    bg: "var(--s2)",
+    cls: "text-[var(--t1)] border border-[var(--b2)] hover:bg-[var(--s3)] hover:border-[var(--b3)] active:scale-[0.97]",
+  },
+  cyan: {
+    bg: "linear-gradient(135deg,#0891b2,#06b6d4)",
+    cls: "text-white border-none shadow-c-md hover:shadow-c-lg hover:-translate-y-0.5 active:scale-[0.97]",
+  },
+  danger: {
+    bg: "rgba(244,63,94,0.12)",
+    cls: "text-[#fb7185] border border-[rgba(244,63,94,0.3)] hover:bg-[rgba(244,63,94,0.22)] active:scale-[0.97]",
+  },
+  ghost: {
+    bg: "transparent",
+    cls: "text-[var(--t2)] border-none hover:text-[var(--t1)] hover:bg-[var(--s2)]",
+  },
+  success: {
+    bg: "rgba(34,197,94,0.12)",
+    cls: "text-[#4ade80] border border-[rgba(34,197,94,0.3)] hover:bg-[rgba(34,197,94,0.22)] active:scale-[0.97]",
+  },
 };
 
 export function Button({
-  children,
-  variant = "primary",
-  className = "",
-  loading = false,
-  disabled = false,
-  fullWidth = false,
-  style = {},
-  ...props
+  children, variant = "primary", className = "",
+  loading = false, disabled = false, fullWidth = false,
+  size = "md", style = {}, ...props
 }) {
+  const { bg, cls } = STYLES[variant] ?? STYLES.primary;
+  const sizeClass = size === "sm"
+    ? "px-4 py-2 text-[13px] rounded-xl gap-1.5"
+    : size === "lg"
+      ? "px-8 py-4 text-[16px] rounded-2xl gap-3"
+      : "px-5 py-3 text-[14px] rounded-xl gap-2";
+
   return (
     <button
       disabled={disabled || loading}
       className={clsx(
-        "flex items-center justify-center gap-2 px-6 py-3 rounded-xl",
-        "text-[15px] font-medium transition-all duration-200",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
+        "flex items-center justify-center font-medium transition-all duration-200",
+        "disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none",
         fullWidth && "w-full",
-        VARIANTS[variant],
-        className,
+        sizeClass, cls, className,
       )}
-      style={{ background: BG[variant], ...style }}
+      style={{ background: bg, fontFamily: "var(--font-b)", ...style }}
       {...props}
     >
       {loading && (
-        <span className="w-[18px] h-[18px] rounded-full border-2 border-white/30 border-t-white animate-spin shrink-0" />
+        <span className="w-4 h-4 rounded-full border-2 border-white/25 border-t-white animate-spin-s shrink-0" />
       )}
       {children}
     </button>
