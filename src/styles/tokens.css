@@ -1,73 +1,75 @@
-/* ============================================================
-   CUBINY v6 — "Vibrant Professional" Design System
-   Inspired by: Uber, Careem, Yango, InDrive
-   NO NEON. Clean whites, crisp greens, professional cobalt.
-   ============================================================ */
-
+/* ================================================================
+   CUBINY v7 — "Command Center" Design System
+   Inspired by: Yango, Uber, Careem product teams
+   Philosophy: Authority through scale. Productive through clarity.
+   ================================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* ── Brand ── */
+  /* ── Brand Action Colors (used ONLY on actionable elements) ── */
   --green:      #22C55E;
   --green-dk:   #16A34A;
   --green-lt:   #DCFCE7;
   --green-mid:  #86EFAC;
+  --green-dim:  #F0FDF4;
   --cobalt:     #2563EB;
   --cobalt-dk:  #1D4ED8;
   --cobalt-lt:  #DBEAFE;
-  --cobalt-mid: #93C5FD;
+  --cobalt-dim: #EFF6FF;
 
-  /* ── Backgrounds ── */
-  --bg:         #F8FAFC;
+  /* ── Neutral Backgrounds (the "stage") ── */
+  --bg:         #F9FAFB;
   --bg-white:   #FFFFFF;
-  --bg-subtle:  #F1F5F9;
+  --bg-subtle:  #F3F4F6;
+  --bg-muted:   #E5E7EB;
   --bg-card:    #FFFFFF;
 
-  /* ── Surfaces / Overlays ── */
-  --overlay:    rgba(255,255,255,0.88);
-  --overlay-sm: rgba(255,255,255,0.96);
-
   /* ── Borders ── */
-  --border:     #E2E8F0;
-  --border-md:  #CBD5E1;
-  --border-dk:  #94A3B8;
+  --border:     #E5E7EB;
+  --border-md:  #D1D5DB;
+  --border-dk:  #9CA3AF;
 
-  /* ── Text ── */
-  --text-primary:   #0F172A;
-  --text-secondary: #475569;
-  --text-muted:     #94A3B8;
-  --text-subtle:    #CBD5E1;
-  --text-white:     #FFFFFF;
+  /* ── Text — strict hierarchy ── */
+  --txt-1: #111827;   /* Display / Headlines */
+  --txt-2: #374151;   /* Body                */
+  --txt-3: #6B7280;   /* Secondary           */
+  --txt-4: #9CA3AF;   /* Placeholder / Muted */
+  --txt-5: #D1D5DB;   /* Disabled            */
 
   /* ── Semantic ── */
-  --red:        #EF4444;
-  --red-lt:     #FEE2E2;
-  --amber:      #F59E0B;
-  --amber-lt:   #FEF3C7;
-  --sky:        #0EA5E9;
-  --sky-lt:     #E0F2FE;
+  --red:     #EF4444;  --red-lt:   #FEF2F2;  --red-mid: #FECACA;
+  --amber:   #F59E0B;  --amber-lt: #FFFBEB;  --amber-mid:#FDE68A;
+  --sky:     #0EA5E9;  --sky-lt:   #F0F9FF;
 
-  /* ── Shadows — no harsh edges, pure soft ── */
-  --shadow-xs:  0 1px 2px rgba(15,23,42,0.05);
-  --shadow-sm:  0 2px 8px rgba(15,23,42,0.07), 0 1px 2px rgba(15,23,42,0.04);
-  --shadow-md:  0 4px 16px rgba(15,23,42,0.09), 0 2px 4px rgba(15,23,42,0.04);
-  --shadow-lg:  0 8px 32px rgba(15,23,42,0.11), 0 2px 8px rgba(15,23,42,0.05);
-  --shadow-xl:  0 16px 48px rgba(15,23,42,0.13), 0 4px 16px rgba(15,23,42,0.06);
-  --shadow-green: 0 4px 20px rgba(34,197,94,0.30);
-  --shadow-cobalt:0 4px 20px rgba(37,99,235,0.28);
+  /* ── Shadows — "expensive" feel, multi-layered ── */
+  --sh-xs:   0 1px 2px rgba(17,24,39,0.05);
+  --sh-sm:   0 1px 3px rgba(17,24,39,0.06), 0 1px 2px rgba(17,24,39,0.04);
+  --sh-md:   0 4px 6px rgba(17,24,39,0.05), 0 2px 4px rgba(17,24,39,0.04);
+  --sh-lg:   0 10px 15px rgba(17,24,39,0.08), 0 4px 6px rgba(17,24,39,0.04);
+  --sh-xl:   0 20px 25px rgba(17,24,39,0.10), 0 8px 10px rgba(17,24,39,0.05);
+  --sh-2xl:  0 25px 50px rgba(17,24,39,0.15), 0 10px 20px rgba(17,24,39,0.08);
+  --sh-panel:0 8px 32px rgba(17,24,39,0.12), 0 2px 8px rgba(17,24,39,0.06), 0 0 0 1px rgba(17,24,39,0.04);
+  --sh-green:0 4px 14px rgba(34,197,94,0.35);
+  --sh-blue: 0 4px 14px rgba(37,99,235,0.30);
 
-  /* ── Radius ── */
-  --r-sm:   6px;
-  --r-md:   10px;
-  --r-lg:   14px;
+  /* ── Border radius — confident curves ── */
+  --r-xs:   4px;
+  --r-sm:   8px;
+  --r-md:   12px;
+  --r-lg:   16px;
   --r-xl:   20px;
-  --r-2xl:  28px;
+  --r-2xl:  24px;
+  --r-3xl:  32px;
   --r-full: 9999px;
 
   /* ── Typography ── */
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* ── Transitions ── */
-  --ease: cubic-bezier(0.4,0,0.2,1);
-  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Spacing scale (Yango uses generous spacing) ── */
+  --space-page: 28px;
 }
