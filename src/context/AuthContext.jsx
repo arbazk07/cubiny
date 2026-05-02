@@ -1,18 +1,33 @@
-// src/context/AuthContext.jsx  —  Cubiny Iteration 3
-// Login now passes real email + password to the backend.
-// Falls back to mock mode when VITE_USE_MOCK=true.
+// src/context/AuthContext.jsx — Cubiny v5
+// FIX #1: Session restored from localStorage on init (was null on every reload)
+// FIX #2: Error state cleared on each new login attempt
 import { createContext, useState, useCallback, useMemo } from "react";
 import { login as svcLogin, logout as svcLogout } from "../services/mockService";
 
 export const AuthContext = createContext(null);
 
+// ── Bug Fix: restore session from localStorage on cold start ──────────────────
+function restoreUser() {
+  try {
+    const raw = localStorage.getItem("cubiny_user");
+    if (!raw) return null;
+    const u = JSON.parse(raw);
+    // Validate the shape before trusting it
+    if (u?.role && u?.id && u?.name) return u;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(null);
+  const [user,    setUser]    = useState(restoreUser);   // ← FIX: was useState(null)
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
   const login = useCallback(async (role, email, password) => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);                                        // clear previous errors
     try {
       const { user: u, token } = await svcLogin(role, email, password);
       localStorage.setItem("cubiny_token", token);
@@ -29,7 +44,8 @@ export function AuthProvider({ children }) {
     try { await svcLogout(); } catch (_) {}
     localStorage.removeItem("cubiny_token");
     localStorage.removeItem("cubiny_user");
-    setUser(null); setError(null);
+    setUser(null);
+    setError(null);
   }, []);
 
   const isRider  = user?.role === "rider";

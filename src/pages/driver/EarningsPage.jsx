@@ -39,7 +39,7 @@ export function EarningsPage() {
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))", gap:12 }}>
         <StatCard icon={DollarSign} label="This Week"  value={`Rs. ${user?.weeklyEarnings?.toLocaleString()}`} color="green" trend={12}/>
-        <StatCard icon={TrendingUp} label="All Time"   value={`Rs. ${user?.earnings?.toLocaleString()}`}       color="violet"/>
+        <StatCard icon={TrendingUp} label="All Time"   value={`Rs. ${user?.earnings?.toLocaleString()}`}       color="blue"/>
         <StatCard icon={Car}        label="Trips"      value={String(user?.totalTrips)}                        color="cyan"/>
         <StatCard icon={Award}      label="Commission" value="15%" sub="Platform fee"                          color="amber"/>
       </div>
@@ -54,7 +54,7 @@ export function EarningsPage() {
               <span>Best: <strong style={{ color:"var(--v3)" }}>{best?.day}</strong></span>
             </div>
           </div>
-          <span style={{ fontSize:20, fontWeight:800, fontFamily:"var(--font-d)", color:"var(--grn)" }}>Rs. {total.toLocaleString()}</span>
+          <span style={{ fontSize:20, fontWeight:800, fontFamily:"var(--font-d)", color:"var(--grn2)" }}>Rs. {total.toLocaleString()}</span>
         </div>
         <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:120 }}>
           {chart.map((e,i)=>(
@@ -83,13 +83,13 @@ export function EarningsPage() {
             <h3 style={{ fontFamily:"var(--font-d)", fontSize:16, marginBottom:3 }}>Ready to Withdraw</h3>
             <p style={{ fontSize:12, color:"var(--t3)" }}>Payouts process within 2–3 business days</p>
           </div>
-          <div style={{ fontSize:22, fontWeight:800, fontFamily:"var(--font-d)", color:"var(--grn)" }}>
+          <div style={{ fontSize:22, fontWeight:800, fontFamily:"var(--font-d)", color:"var(--grn2)" }}>
             Rs. {user?.weeklyEarnings?.toLocaleString()}
           </div>
         </div>
         {paid ? (
           <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 18px", background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.25)", borderRadius:"var(--r2)" }}>
-            <CheckCircle size={18} color="var(--grn)"/>
+            <CheckCircle size={18} color="var(--grn2)"/>
             <span style={{ fontSize:13, color:"#4ade80", fontWeight:600 }}>Payout request submitted successfully!</span>
           </div>
         ):(

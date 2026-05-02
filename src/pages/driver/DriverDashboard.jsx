@@ -92,12 +92,12 @@ export function DriverDashboard() {
           <h2 style={{ fontFamily:"var(--font-d)",fontSize:22,letterSpacing:"-0.02em" }}>Driver Hub</h2>
           <p style={{ fontSize:12,color:"var(--t3)",marginTop:3 }}>
             {user?.vehicle?.make} {user?.vehicle?.model} · {user?.vehicle?.plate}
-            {IS_ELECTRON && <span style={{ marginLeft:8,fontSize:10,color:"var(--v3)",fontFamily:"var(--font-m)" }}>● Desktop</span>}
+            {IS_ELECTRON && <span style={{ marginLeft:8,fontSize:10,color:"var(--blu3)",fontFamily:"var(--font-m)" }}>● Desktop</span>}
           </p>
         </div>
         {user?.verified && (
           <div style={{ display:"flex",alignItems:"center",gap:6,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:100,padding:"7px 14px" }}>
-            <Shield size={12} color="var(--grn)"/><span style={{ fontSize:12,color:"#4ade80",fontWeight:600 }}>Verified</span>
+            <Shield size={12} color="var(--grn2)"/><span style={{ fontSize:12,color:"#4ade80",fontWeight:600 }}>Verified</span>
           </div>
         )}
       </div>
@@ -151,7 +151,7 @@ export function DriverDashboard() {
       {/* Stats */}
       <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12 }}>
         <StatCard icon={DollarSign} label="This Week" value={`Rs. ${user?.weeklyEarnings?.toLocaleString()}`} color="green" trend={12}/>
-        <StatCard icon={TrendingUp} label="All Time"  value={`Rs. ${user?.earnings?.toLocaleString()}`}       color="violet"/>
+        <StatCard icon={TrendingUp} label="All Time"  value={`Rs. ${user?.earnings?.toLocaleString()}`}       color="blue"/>
         <StatCard icon={Car}        label="Trips"     value={String(user?.totalTrips)}                        color="cyan" trend={5}/>
         <StatCard icon={Star}       label="Rating"    value={`${user?.rating}★`}                             color="amber"/>
       </div>
@@ -168,8 +168,8 @@ export function DriverDashboard() {
               <div style={{
                 width:"100%",borderRadius:"5px 5px 0 0",
                 height:`${(e.amount/maxEarning)*80}px`,
-                background: i===4 ? "linear-gradient(180deg,var(--v2),var(--v))" : `rgba(109,40,217,${0.12+i*0.04})`,
-                boxShadow: i===4 ? "var(--sh-v)" : "none",
+                background: i===4 ? "linear-gradient(180deg,var(--blu2),var(--blu))" : `rgba(59,130,246,${0.12+i*0.04})`,
+                boxShadow: i===4 ? "var(--sh-blu)" : "none",
                 transition:"height 0.8s cubic-bezier(0.4,0,0.2,1)",transitionDelay:`${i*0.06}s`,
               }}/>
               <div style={{ fontSize:10,color:i===4?"var(--v3)":"var(--t4)",fontWeight:i===4?700:400 }}>{e.day}</div>

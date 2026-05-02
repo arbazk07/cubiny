@@ -1,58 +1,48 @@
-// src/services/fareService.js  —  Cubiny Iteration 3
-// ─────────────────────────────────────────────────────────────────
-// When VITE_USE_MOCK=false, fare calculations are done server-side
-// via the CalculateSurgeFare stored procedure.
-// This file keeps the local logic as a fallback / offline mode.
-// ─────────────────────────────────────────────────────────────────
-import { FARE_CONFIG, SURGE_CONFIG } from "../data/mockData";
+// src/services/fareService.js — Cubiny v5
+// BUG FIX: Added NaN guard — distanceKm and durationMin must be positive numbers.
+//          Previously, passing undefined caused Rs. NaN to render on screen.
+const BASE_RATES = {
+  Economy: { perKm: 45,  perMin: 3,  base: 100 },
+  Premium: { perKm: 75,  perMin: 6,  base: 200 },
+  Bike:    { perKm: 25,  perMin: 2,  base: 60  },
+};
 
-/**
- * Local surge multiplier — mirrors CalculateSurgeFare stored procedure.
- * Used only when VITE_USE_MOCK=true (offline/demo mode).
- */
-export function getSurgeMultiplier() {
-  const hour  = new Date().getHours();
-  const match = SURGE_CONFIG.peakHours.find(p => hour >= p.start && hour < p.end);
+const SURGE_RULES = [
+  { from: 17, to: 20, multiplier: 1.5, label: "Evening Peak" },
+  { from: 8,  to: 10, multiplier: 1.3, label: "Morning Rush"  },
+  { from: 0,  to: 5,  multiplier: 1.2, label: "Late Night"    },
+];
+
+function getCurrentSurge() {
+  const hour = new Date().getHours();
+  return SURGE_RULES.find(r => hour >= r.from && hour < r.to) ?? null;
+}
+
+export function calcFare(type = "Economy", distanceKm, durationMin) {
+  // ← BUG FIX: guard NaN inputs
+  const dist = Math.max(0, Number(distanceKm) || 0);
+  const dur  = Math.max(0, Number(durationMin) || 0);
+  const rate = BASE_RATES[type] ?? BASE_RATES.Economy;
+  const base = rate.base + dist * rate.perKm + dur * rate.perMin;
+
+  const surge = getCurrentSurge();
+  const mult  = surge ? surge.multiplier : 1;
+  const final = Math.round(base * mult);
+
+  const etaMin = Math.round(dur * 0.9 + dist * 1.2);
+
   return {
-    multiplier:  match?.multiplier ?? SURGE_CONFIG.defaultMultiplier,
-    surgeApplied: Boolean(match),
-    surgeLabel:  match?.label ?? null,
+    id:           type,
+    baseFare:     Math.round(base),
+    finalFare:    final,
+    multiplier:   mult,
+    surgeApplied: mult > 1,
+    surgeLabel:   surge?.label ?? null,
+    eta:          `~${etaMin} min`,
+    currency:     "PKR",
   };
 }
 
-/**
- * Local fare calculation.
- * Formula from PDF §4:
- *   fare = (baseRate + perKmRate×dist + perMinRate×dur) × surgeMultiplier
- */
-export function calcFare(vehicleType, distanceKm = 7.2, durationMin = 18, promoDiscount = 0) {
-  const cfg = FARE_CONFIG[vehicleType] ?? FARE_CONFIG.Economy;
-  const { multiplier, surgeApplied, surgeLabel } = getSurgeMultiplier();
-
-  const baseFare   = cfg.baseRate + cfg.perKmRate * distanceKm + cfg.perMinuteRate * durationMin;
-  const surgedFare = baseFare * multiplier;
-  const discount   = Math.round(surgedFare * promoDiscount);
-  const finalFare  = Math.round(surgedFare - discount);
-
-  return {
-    fare: Math.round(surgedFare),
-    baseFare: Math.round(baseFare),
-    surgeApplied,
-    multiplier,
-    surgeLabel,
-    discount,
-    finalFare,
-  };
-}
-
-/**
- * Returns all vehicle types with pre-calculated fares.
- */
-export function getAllFares(distanceKm = 7.2, durationMin = 18) {
-  return Object.entries(FARE_CONFIG).map(([type, cfg]) => ({
-    id:    type,
-    label: cfg.label,
-    eta:   cfg.eta,
-    ...calcFare(type, distanceKm, durationMin),
-  }));
+export function getAllFares(distanceKm, durationMin) {
+  return Object.keys(BASE_RATES).map(t => calcFare(t, distanceKm, durationMin));
 }

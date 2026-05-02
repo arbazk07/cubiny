@@ -1,40 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* ── Brand ── */
-  --v:    #6d28d9;  --v2: #8b5cf6;  --v3: #a78bfa;  --v4: #c4b5fd;
-  --c:    #0891b2;  --c2: #06b6d4;  --c3: #22d3ee;  --c4: #67e8f9;
+  /* ── Brand — Electric Blue primary, Vivid Purple premium, Emerald active ── */
+  --blu:  #3b82f6;  --blu2: #60a5fa;  --blu3: #93c5fd;  --blu4: #bfdbfe;
+  --v:    #7c3aed;  --v2:   #8b5cf6;  --v3:   #a78bfa;  --v4:   #c4b5fd;
+  --grn:  #10b981;  --grn2: #34d399;  --grn3: #6ee7b7;  --grn4: #a7f3d0;
+  --c:    #0891b2;  --c2:   #06b6d4;  --c3:   #22d3ee;  --c4:   #67e8f9;
 
-  /* ── Backgrounds ── */
-  --bg:   #050510;  --bg2: #0a0a1e;  --bg3: #0f0f28;  --bg4: #141435;
+  /* ── Backgrounds — deep rich navy/slate ── */
+  --bg:  #0a0f1e;  --bg2: #0f1629;  --bg3: #141e35;  --bg4: #1a2640;
 
   /* ── Surfaces ── */
   --s1: rgba(255,255,255,0.03);
-  --s2: rgba(255,255,255,0.06);
-  --s3: rgba(255,255,255,0.10);
+  --s2: rgba(255,255,255,0.055);
+  --s3: rgba(255,255,255,0.09);
+  --s4: rgba(255,255,255,0.13);
 
   /* ── Borders ── */
-  --b1: rgba(255,255,255,0.06);
+  --b1: rgba(255,255,255,0.065);
   --b2: rgba(255,255,255,0.12);
-  --b3: rgba(255,255,255,0.20);
+  --b3: rgba(255,255,255,0.22);
 
   /* ── Text ── */
-  --t1: #f0f0ff;  --t2: #9090b8;  --t3: #50507a;  --t4: #30304a;
+  --t1: #f0f4ff;  --t2: #94a3b8;  --t3: #475569;  --t4: #2d3f5a;
 
   /* ── Semantic ── */
-  --red: #f43f5e;  --grn: #22c55e;  --amb: #f59e0b;  --blu: #3b82f6;
+  --red: #f43f5e;  --amb: #f59e0b;
 
   /* ── Radii ── */
-  --r1: 10px;  --r2: 16px;  --r3: 24px;  --r4: 32px;
+  --r1: 10px;  --r2: 14px;  --r3: 20px;  --r4: 28px;
 
   /* ── Shadows ── */
-  --sh-card:  0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
-  --sh-v:     0 4px 24px rgba(109,40,217,0.4);
-  --sh-c:     0 4px 24px rgba(8,145,178,0.4);
-  --sh-g:     0 4px 24px rgba(34,197,94,0.4);
+  --sh-card:  0 8px 40px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.07) inset;
+  --sh-pop:   0 24px 64px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.08) inset;
+  --sh-blu:   0 6px 28px rgba(59,130,246,0.45);
+  --sh-v:     0 6px 28px rgba(124,62,237,0.45);
+  --sh-grn:   0 6px 28px rgba(16,185,129,0.40);
+  --sh-c:     0 6px 28px rgba(8,145,178,0.40);
 
   /* ── Typography ── */
   --font-d: 'Syne', sans-serif;
-  --font-b: 'DM Sans', sans-serif;
+  --font-b: 'Plus Jakarta Sans', sans-serif;
   --font-m: 'JetBrains Mono', monospace;
 }

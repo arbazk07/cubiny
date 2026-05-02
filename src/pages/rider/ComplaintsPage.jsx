@@ -40,7 +40,7 @@ export function ComplaintsPage() {
 
         {submitted ? (
           <div style={{ textAlign:"center", padding:"24px 0" }}>
-            <CheckCircle size={52} color="var(--grn)" style={{ margin:"0 auto 14px" }}/>
+            <CheckCircle size={52} color="var(--grn2)" style={{ margin:"0 auto 14px" }}/>
             <p style={{ fontFamily:"var(--font-d)", fontSize:17, marginBottom:4 }}>Ticket Submitted!</p>
             <p style={{ fontSize:13, color:"var(--t3)", marginBottom:4 }}>Reference: <span style={{ fontFamily:"var(--font-m)", color:"var(--v3)" }}>{submitted}</span></p>
             <p style={{ fontSize:12, color:"var(--t4)" }}>We'll email you at {user?.email}</p>

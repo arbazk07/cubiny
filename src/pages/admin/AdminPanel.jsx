@@ -45,7 +45,7 @@ export function AdminPanel() {
           <p style={{ fontSize:12, color:"var(--t3)", marginTop:3 }}>Live platform overview · {new Date().toLocaleDateString("en-PK",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(34,197,94,0.08)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:100, padding:"8px 16px" }}>
-          <div style={{ width:7, height:7, borderRadius:"50%", background:"var(--grn)", animation:"ping-sm 1.5s ease-out infinite" }}/>
+          <div style={{ width:7, height:7, borderRadius:"50%", background:"var(--grn2)", animation:"ping-sm 1.5s ease-out infinite" }}/>
           <span style={{ fontSize:12, color:"#4ade80", fontWeight:600 }}>Live</span>
         </div>
       </div>
@@ -54,7 +54,7 @@ export function AdminPanel() {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))", gap:12 }}>
         <StatCard icon={DollarSign} label="Total Revenue"  value={`Rs. ${(stats.totalRevenue/1000).toFixed(0)}K`}   color="green"  trend={8}/>
         <StatCard icon={Activity}   label="Active Rides"   value={String(stats.activeRides)}                        color="cyan"   trend={15}/>
-        <StatCard icon={Users}      label="Drivers"        value={stats.registeredDrivers.toLocaleString()}         color="violet" />
+        <StatCard icon={Users}      label="Drivers"        value={stats.registeredDrivers.toLocaleString()}         color="blue" />
         <StatCard icon={Users}      label="Riders"         value={stats.registeredRiders.toLocaleString()}          color="amber"  trend={22}/>
         <StatCard icon={DollarSign} label="Today"          value={`Rs. ${(stats.todayRevenue/1000).toFixed(1)}K`}  color="cyan"   />
       </div>
@@ -113,7 +113,7 @@ export function AdminPanel() {
         </div>
         {flagged.length===0 ? (
           <div style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 0", color:"var(--t4)", fontSize:13 }}>
-            <CheckCircle size={15} color="var(--grn)"/> All drivers rated above threshold
+            <CheckCircle size={15}  color="var(--grn2)"/> All drivers rated above threshold
           </div>
         ):(
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -176,7 +176,7 @@ export function AdminPanel() {
         </div>
         <div style={{ marginTop:20, paddingTop:16, borderTop:"1px solid var(--b1)", display:"flex", justifyContent:"space-between", fontSize:12, color:"var(--t3)" }}>
           <span>Total platform revenue</span>
-          <span style={{ fontWeight:700, fontFamily:"var(--font-d)", color:"var(--grn)", fontSize:14 }}>Rs. {stats.totalRevenue.toLocaleString()}</span>
+          <span style={{ fontWeight:700, fontFamily:"var(--font-d)", color:"var(--grn2)", fontSize:14 }}>Rs. {stats.totalRevenue.toLocaleString()}</span>
         </div>
       </div>
     </div>

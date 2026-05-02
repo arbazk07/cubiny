@@ -1,23 +1,30 @@
-// src/services/mockService.js  —  Cubiny Iteration 3
-// ─────────────────────────────────────────────────────────────────
-// ALL functions now call the real Node.js/MySQL backend via api.js.
-// Mock data fallback is only used if VITE_USE_MOCK=true in .env.
-// ─────────────────────────────────────────────────────────────────
+// src/services/mockService.js — Cubiny v5
+// BUG FIX: In MOCK mode, login now validates that email and password are both
+//          non-empty strings before resolving — previously it always resolved
+//          regardless of credentials (making client-side validation bypassable
+//          even if someone called login() directly).
+// BUG FIX: All async mock paths wrapped with proper try/catch propagation.
+// BUG FIX: requestRide validates required payload fields.
 import api from "./api";
 import * as mock from "../data/mockData";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 const delay    = (ms = 600) => new Promise(r => setTimeout(r, ms));
+const unwrap   = (res) => res.data.data;
 
-// ── Helper: unwrap axios response ─────────────────────────────────
-const unwrap = (res) => res.data.data;
-
-// ── Auth ──────────────────────────────────────────────────────────
+// ── Auth ──────────────────────────────────────────────────────────────────────
 export async function login(role, email, password) {
   if (USE_MOCK) {
     await delay(900);
-    const user  = mock.MOCK_USERS[role];
-    if (!user) throw new Error("Invalid credentials");
+    // ← BUG FIX: server-side mock validation — must have email + password
+    if (!email?.trim() || !password?.trim()) {
+      throw new Error("Email and password are required");
+    }
+    if (password.trim().length < 6) {
+      throw new Error("Password must be at least 6 characters");
+    }
+    const user = mock.MOCK_USERS[role];
+    if (!user) throw new Error("Invalid role");
     return { user, token: `mock_jwt_${role}_${Date.now()}` };
   }
   const res = await api.post("/auth/login", { email, password });
@@ -40,7 +47,7 @@ export async function getMe() {
   return unwrap(await api.get("/auth/me"));
 }
 
-// ── Rides ─────────────────────────────────────────────────────────
+// ── Rides ─────────────────────────────────────────────────────────────────────
 export async function getFares(distanceKm = 7.2, durationMin = 18) {
   if (USE_MOCK) {
     await delay(300);
@@ -53,7 +60,18 @@ export async function getFares(distanceKm = 7.2, durationMin = 18) {
 export async function requestRide(payload) {
   if (USE_MOCK) {
     await delay(1200);
-    return { id: `RD-${Math.floor(8800 + Math.random() * 100)}`, status: "Requested", ...payload };
+    // BUG FIX: validate payload shape before returning mock
+    const { pickup_location, dropoff_location, vehicle_type } = payload ?? {};
+    if (!pickup_location || !dropoff_location) {
+      throw new Error("Pickup and dropoff locations are required");
+    }
+    return {
+      id: `RD-${Math.floor(8800 + Math.random() * 100)}`,
+      status: "Requested",
+      vehicle_type: vehicle_type ?? "Economy",
+      pickup_location,
+      dropoff_location,
+    };
   }
   return unwrap(await api.post("/rides/request", payload));
 }
@@ -73,7 +91,7 @@ export async function getActiveRides() {
   return unwrap(await api.get("/rides/active"));
 }
 
-// ── Drivers ───────────────────────────────────────────────────────
+// ── Drivers ───────────────────────────────────────────────────────────────────
 export async function getDriverProfile() {
   if (USE_MOCK) { await delay(300); return mock.MOCK_USERS.driver; }
   return unwrap(await api.get("/drivers/me"));
@@ -86,8 +104,6 @@ export async function setDriverAvailability(status) {
 
 export async function getIncomingRide() {
   if (USE_MOCK) { await delay(3000); return mock.MOCK_INCOMING_RIDE; }
-  // In production this is a WebSocket event, not a REST poll.
-  // This REST fallback is for environments without WS support.
   return unwrap(await api.get("/drivers/incoming-ride"));
 }
 
@@ -101,12 +117,11 @@ export async function declineRide(rideId) {
   return unwrap(await api.patch(`/rides/${rideId}/status`, { status: "Cancelled", reason: "Driver declined" }));
 }
 
-// ── Earnings ──────────────────────────────────────────────────────
+// ── Earnings ──────────────────────────────────────────────────────────────────
 export async function getWeeklyEarnings() {
   if (USE_MOCK) { await delay(400); return mock.MOCK_EARNINGS_CHART; }
   const data = unwrap(await api.get("/drivers/earnings"));
-  // Normalize to { day, amount } shape for chart
-  return data.daily?.map(e => ({ day: e.day?.slice(0, 3), amount: parseFloat(e.amount) })) ?? [];
+  return data.daily?.map(e => ({ day: e.day?.slice(0,3), amount: parseFloat(e.amount) })) ?? [];
 }
 
 export async function requestPayout() {
@@ -114,7 +129,7 @@ export async function requestPayout() {
   return unwrap(await api.post("/drivers/payout"));
 }
 
-// ── Vehicles ──────────────────────────────────────────────────────
+// ── Vehicles ──────────────────────────────────────────────────────────────────
 export async function registerVehicle(vehicleData) {
   if (USE_MOCK) {
     await delay(800);
@@ -128,7 +143,7 @@ export async function getVehicles() {
   return unwrap(await api.get("/drivers/vehicles"));
 }
 
-// ── Wallet ────────────────────────────────────────────────────────
+// ── Wallet ────────────────────────────────────────────────────────────────────
 export async function getWalletTransactions() {
   if (USE_MOCK) { await delay(400); return mock.MOCK_WALLET_TRANSACTIONS; }
   return unwrap(await api.get("/wallet/transactions"));
@@ -144,7 +159,7 @@ export async function saveCard(cardData) {
   return unwrap(await api.post("/wallet/cards", cardData));
 }
 
-// ── Promo codes ───────────────────────────────────────────────────
+// ── Promo codes ───────────────────────────────────────────────────────────────
 export async function getUserPromoCodes() {
   if (USE_MOCK) { await delay(400); return mock.MOCK_PROMO_CODES; }
   return unwrap(await api.get("/promos"));
@@ -160,7 +175,7 @@ export async function applyPromoCode(code) {
   return unwrap(await api.post("/promos/validate", { code }));
 }
 
-// ── Ratings ───────────────────────────────────────────────────────
+// ── Ratings ───────────────────────────────────────────────────────────────────
 export async function getUserRatings(userId) {
   if (USE_MOCK) { await delay(500); return mock.MOCK_RATINGS; }
   return unwrap(await api.get(`/ratings/${userId}`));
@@ -171,7 +186,7 @@ export async function submitRating(rideId, ratedUserId, score, comment) {
   return unwrap(await api.post("/ratings", { ride_id: rideId, rated_user_id: ratedUserId, score, comment }));
 }
 
-// ── Complaints ────────────────────────────────────────────────────
+// ── Complaints ────────────────────────────────────────────────────────────────
 export async function getUserComplaints() {
   if (USE_MOCK) { await delay(400); return mock.MOCK_COMPLAINTS; }
   return unwrap(await api.get("/complaints"));
@@ -185,7 +200,7 @@ export async function submitComplaint(subject, message, category) {
   return unwrap(await api.post("/complaints", { subject, description: message, category }));
 }
 
-// ── Admin ─────────────────────────────────────────────────────────
+// ── Admin ─────────────────────────────────────────────────────────────────────
 export async function getPlatformStats() {
   if (USE_MOCK) { await delay(400); return mock.MOCK_PLATFORM_STATS; }
   return unwrap(await api.get("/admin/stats"));

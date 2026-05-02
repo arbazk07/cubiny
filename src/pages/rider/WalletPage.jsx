@@ -79,7 +79,7 @@ export function WalletPage() {
               <div style={{ fontSize:14, fontWeight:500 }}>{m.label}</div>
               <div style={{ fontSize:12, color:"var(--t3)" }}>{m.sub}</div>
             </div>
-            {m.active && <div style={{ width:7, height:7, borderRadius:"50%", background:"var(--grn)", boxShadow:"0 0 10px var(--grn)" }}/>}
+            {m.active && <div style={{ width:7, height:7, borderRadius:"50%", background:"var(--grn2)", boxShadow:"0 0 10px var(--grn2)" }}/>}
           </div>
         ))}
       </div>

@@ -54,7 +54,7 @@ export function VehiclesPage() {
       {/* Result */}
       {result && (
         <div style={{ background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.25)", borderRadius:"var(--r2)", padding:"14px 18px", marginBottom:20, display:"flex", alignItems:"center", gap:10 }}>
-          <Check size={16} color="var(--grn)"/>
+          <Check size={16} color="var(--grn2)"/>
           <div>
             <div style={{ fontSize:13, fontWeight:600, color:"#4ade80" }}>Vehicle submitted for review</div>
             <div style={{ fontSize:12, color:"var(--t3)" }}>ID: <span style={{ fontFamily:"var(--font-m)" }}>{result.vehicleId}</span> · Verification takes 24–48 hours</div>
