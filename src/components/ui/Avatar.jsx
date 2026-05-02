@@ -1,28 +1,33 @@
-// src/components/ui/Avatar.jsx — Cubiny v5
-export function Avatar({ initials = "?", size = 38, glow = false, status }) {
-  const statusColors = { online:"#10b981", offline:"#64748b", busy:"#f59e0b" };
+// src/components/ui/Avatar.jsx — Cubiny v6
+const COLORS = [
+  ['#DCFCE7','#16A34A'], ['#DBEAFE','#1D4ED8'], ['#FEF3C7','#92400E'],
+  ['#FEE2E2','#991B1B'], ['#F3E8FF','#7E22CE'], ['#E0F2FE','#0369A1'],
+];
+function colorFor(str='') {
+  const i = str.charCodeAt(0) % COLORS.length;
+  return COLORS[i];
+}
+export function Avatar({ initials='?', size=38, status }) {
+  const [bg, fg] = colorFor(initials);
+  const dot = { online:'#22C55E', offline:'#94A3B8', busy:'#F59E0B' };
   return (
-    <div style={{ position:"relative", flexShrink:0 }}>
+    <div style={{ position:'relative', flexShrink:0, width:size, height:size }}>
       <div style={{
-        width:size, height:size, borderRadius:"50%",
-        background:"linear-gradient(135deg,#7c3aed,#3b82f6)",
-        display:"flex", alignItems:"center", justifyContent:"center",
-        fontFamily:"var(--font-d)", fontWeight:800,
-        fontSize:size * 0.36, color:"#fff",
-        boxShadow: glow ? "0 0 20px rgba(59,130,246,0.55)" : "0 2px 8px rgba(0,0,0,0.3)",
-        transition:"box-shadow 0.3s",
-        letterSpacing:"-0.02em",
-        userSelect:"none",
+        width:size, height:size, borderRadius:'50%',
+        background:bg, color:fg,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        fontWeight:700, fontSize:size*0.36, userSelect:'none',
+        border:`1.5px solid ${fg}22`, letterSpacing:'-0.01em',
       }}>
         {initials.slice(0,2).toUpperCase()}
       </div>
       {status && (
-        <div style={{
-          position:"absolute", bottom:0, right:0,
-          width:size * 0.28, height:size * 0.28, borderRadius:"50%",
-          background: statusColors[status] ?? "#64748b",
-          border:`2px solid var(--bg2)`,
-          boxShadow:`0 0 8px ${statusColors[status] ?? "#64748b"}`,
+        <span style={{
+          position:'absolute', bottom:0, right:0,
+          width:size*0.27, height:size*0.27, borderRadius:'50%',
+          background:dot[status]??'#94A3B8',
+          border:`2px solid white`,
+          boxShadow:`0 0 0 1px ${dot[status]??'#94A3B8'}22`,
         }}/>
       )}
     </div>

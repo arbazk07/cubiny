@@ -1,94 +1,130 @@
-// src/pages/rider/ComplaintsPage.jsx  —  Cubiny v2
-import { useState, useEffect } from "react";
-import { FileText, CheckCircle, Send } from "lucide-react";
-import { Button }     from "../../components/ui/Button";
-import { Input }      from "../../components/ui/Input";
-import { StatusPill } from "../../components/ui/StatusPill";
-import { useAuth }    from "../../hooks/useAuth";
-import { getUserComplaints, submitComplaint } from "../../services/mockService";
+// src/pages/rider/ComplaintsPage.jsx — Cubiny v6
+import { useState, useEffect } from 'react';
+import { FileText, Plus, CheckCircle, AlertCircle } from 'lucide-react';
+import { Input }          from '../../components/ui/Input';
+import { Button }         from '../../components/ui/Button';
+import { Modal }          from '../../components/ui/Modal';
+import { StatusPill }     from '../../components/ui/StatusPill';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { useAuth }        from '../../hooks/useAuth';
+import { getUserComplaints, submitComplaint } from '../../services/mockService';
 
-const CATEGORIES = ["Driver Behaviour","Wrong Route","Overcharging","App Issue","Other"];
+const CATEGORIES = ['Ride Issue','Driver Behaviour','Payment Problem','App Bug','Other'];
 
 export function ComplaintsPage() {
-  const { user }                  = useAuth();
-  const [tickets,   setTickets]   = useState([]);
-  const [subject,   setSubject]   = useState("");
-  const [message,   setMessage]   = useState("");
-  const [category,  setCategory]  = useState(CATEGORIES[0]);
-  const [submitting,setSub]       = useState(false);
-  const [submitted, setSubmitted] = useState(null);
+  const { user }                    = useAuth();
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoad]          = useState(true);
+  const [showForm, setShowForm]     = useState(false);
+  const [subject,  setSubject]      = useState('');
+  const [message,  setMessage]      = useState('');
+  const [category, setCategory]     = useState('Ride Issue');
+  const [submitting, setSub]        = useState(false);
+  const [submitted, setSubmitted]   = useState(null);
+  const [subjectErr, setSubErr]     = useState('');
+  const [messageErr, setMsgErr]     = useState('');
 
-  useEffect(()=>{ getUserComplaints(user?.id).then(setTickets); },[user]);
+  useEffect(() => { getUserComplaints().then(c => { setComplaints(c); setLoad(false); }); }, []);
 
-  const submit = async () => {
-    if (!subject.trim()||!message.trim()) return;
+  const handleSubmit = async () => {
+    let hasErr = false;
+    if (!subject.trim()) { setSubErr('Subject is required'); hasErr = true; }
+    if (!message.trim()) { setMsgErr('Please describe your issue'); hasErr = true; }
+    if (hasErr) return;
     setSub(true);
-    const res = await submitComplaint(subject, message, user?.id);
+    const r = await submitComplaint(subject, message, category);
+    setSubmitted(r.ticketId);
     setSub(false);
-    setSubmitted(res.ticketId);
-    setSubject(""); setMessage("");
+    setComplaints(p => [{ id:r.ticketId, subject, date:'Just now', status:'Open' }, ...p]);
   };
 
+  if (loading) return <LoadingSpinner label="Loading support tickets…"/>;
+
   return (
-    <div className="mesh-subtle" style={{ padding:28, overflowY:"auto", height:"100vh" }}>
-      <h2 style={{ fontFamily:"var(--font-d)", fontSize:22, letterSpacing:"-0.02em", marginBottom:24 }}>Support</h2>
+    <div className="page-scroll">
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+        <div>
+          <h1 style={{ fontSize:22, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em' }}>Support</h1>
+          <p style={{ fontSize:13, color:'var(--text-muted)', marginTop:3 }}>We typically respond within 24 hours</p>
+        </div>
+        <Button variant="primary" size="sm" onClick={() => setShowForm(true)}><Plus size={14}/> New Ticket</Button>
+      </div>
 
-      {/* Form */}
-      <div className="glass-sm" style={{ padding:24, marginBottom:20 }}>
-        <h3 style={{ fontFamily:"var(--font-d)", fontSize:16, marginBottom:4 }}>Lodge a Complaint</h3>
-        <p style={{ fontSize:13, color:"var(--t3)", marginBottom:20 }}>Our support team responds within 24 hours.</p>
+      {/* Complaints list */}
+      {complaints.length > 0 ? (
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {complaints.map(c => (
+            <div key={c.id} style={{ background:'white', border:'1px solid var(--border)', borderRadius:'var(--r-xl)', padding:'16px 20px', boxShadow:'var(--shadow-sm)', display:'flex', alignItems:'center', gap:14 }}>
+              <div style={{ width:40, height:40, borderRadius:'50%', background:c.status==='Open'?'#FEF3C7':'#F0FDF4', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <FileText size={16} color={c.status==='Open'?'#F59E0B':'#22C55E'} strokeWidth={2}/>
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.subject}</p>
+                <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>{c.date} · {c.id}</p>
+              </div>
+              <StatusPill status={c.status}/>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ textAlign:'center', padding:'48px 0', color:'var(--text-muted)' }}>
+          <FileText size={32} style={{ margin:'0 auto 12px', opacity:0.4 }}/>
+          <p style={{ fontSize:15, fontWeight:600 }}>No support tickets yet</p>
+          <p style={{ fontSize:13, marginTop:4 }}>Submit a ticket if you need help</p>
+        </div>
+      )}
 
+      {/* New ticket modal */}
+      <Modal open={showForm} onClose={() => { setShowForm(false); setSubmitted(null); setSubject(''); setMessage(''); setSubErr(''); setMsgErr(''); }}
+        title="Submit Support Ticket" subtitle="Describe your issue and we'll get back to you">
         {submitted ? (
-          <div style={{ textAlign:"center", padding:"24px 0" }}>
-            <CheckCircle size={52} color="var(--grn2)" style={{ margin:"0 auto 14px" }}/>
-            <p style={{ fontFamily:"var(--font-d)", fontSize:17, marginBottom:4 }}>Ticket Submitted!</p>
-            <p style={{ fontSize:13, color:"var(--t3)", marginBottom:4 }}>Reference: <span style={{ fontFamily:"var(--font-m)", color:"var(--v3)" }}>{submitted}</span></p>
-            <p style={{ fontSize:12, color:"var(--t4)" }}>We'll email you at {user?.email}</p>
-            <button onClick={()=>setSubmitted(null)} style={{ marginTop:16, background:"none", border:"none", color:"var(--v3)", fontSize:13, cursor:"pointer" }}>
-              Submit another
-            </button>
+          <div style={{ textAlign:'center', padding:'20px 0' }}>
+            <div style={{ width:60, height:60, borderRadius:'50%', background:'#F0FDF4', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}>
+              <CheckCircle size={28} color="#22C55E" strokeWidth={2}/>
+            </div>
+            <p style={{ fontSize:17, fontWeight:700, color:'var(--text-primary)', marginBottom:6 }}>Ticket Submitted!</p>
+            <p style={{ fontSize:13, color:'var(--text-muted)', marginBottom:4 }}>Reference: <span style={{ fontFamily:'monospace', fontWeight:700, color:'var(--cobalt)' }}>{submitted}</span></p>
+            <p style={{ fontSize:12, color:'var(--text-muted)' }}>We'll email you at {user?.email}</p>
           </div>
-        ):(
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             <div>
-              <p style={{ fontSize:12, color:"var(--t3)", marginBottom:8 }}>Category</p>
-              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                {CATEGORIES.map(c=>(
-                  <button key={c} onClick={()=>setCategory(c)} style={{
-                    padding:"6px 12px", borderRadius:"var(--r1)", border:`1px solid ${category===c?"rgba(109,40,217,0.45)":"var(--b1)"}`,
-                    background: category===c?"rgba(109,40,217,0.12)":"var(--s1)",
-                    color: category===c?"var(--v3)":"var(--t3)", fontSize:12, cursor:"pointer", fontFamily:"var(--font-b)",
-                  }}>{c}</button>
+              <p style={{ fontSize:12, fontWeight:700, color:'var(--text-primary)', marginBottom:8 }}>Category</p>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {CATEGORIES.map(cat => (
+                  <button key={cat} onClick={() => setCategory(cat)} style={{
+                    padding:'6px 12px', borderRadius:99, fontSize:12, fontWeight:600,
+                    background: category===cat ? '#EFF6FF' : 'var(--bg-subtle)',
+                    border: `1.5px solid ${category===cat ? '#2563EB' : 'var(--border)'}`,
+                    color: category===cat ? '#1D4ED8' : 'var(--text-secondary)',
+                    cursor:'pointer', fontFamily:'var(--font)', transition:'all 0.12s',
+                  }}>{cat}</button>
                 ))}
               </div>
             </div>
-            <Input label="Subject" placeholder="Brief description of your issue" value={subject} onChange={e=>setSubject(e.target.value)}/>
+            <Input label="Subject" placeholder="Brief description of your issue" value={subject}
+              onChange={e=>{ setSubject(e.target.value); setSubErr(''); }} error={subjectErr}/>
             <div>
-              <label style={{ fontSize:12, color:"var(--t3)", marginBottom:8, display:"block", fontWeight:500 }}>Details</label>
-              <textarea value={message} onChange={e=>setMessage(e.target.value)}
-                placeholder="Please describe what happened in detail…"
-                style={{ width:"100%", height:110, resize:"none", background:"var(--s2)", border:"1px solid var(--b2)", borderRadius:"var(--r2)", padding:"12px 16px", fontSize:14, color:"var(--t1)", fontFamily:"var(--font-b)", lineHeight:1.6 }}/>
+              {messageErr && <p style={{ fontSize:12, color:'#DC2626', marginBottom:4 }}>{messageErr}</p>}
+              <textarea value={message} onChange={e=>{setMessage(e.target.value);setMsgErr('');}}
+                placeholder="Tell us what happened in detail…"
+                style={{
+                  width:'100%', height:100, resize:'none', padding:'10px 14px',
+                  background:'var(--bg-subtle)', border:`1.5px solid ${messageErr?'#EF4444':'var(--border)'}`,
+                  borderRadius:'var(--r-lg)', fontSize:13, color:'var(--text-primary)',
+                  fontFamily:'var(--font)', outline:'none', transition:'border-color 0.15s',
+                }}
+                onFocus={e=>{ e.target.style.borderColor='#2563EB'; e.target.style.background='white'; }}
+                onBlur={e=>{ e.target.style.borderColor=messageErr?'#EF4444':'var(--border)'; e.target.style.background='var(--bg-subtle)'; }}
+              />
             </div>
-            <Button fullWidth loading={submitting} onClick={submit} disabled={!subject.trim()||!message.trim()}>
-              <Send size={14}/> Submit Ticket
-            </Button>
+            <div style={{ display:'flex', gap:10 }}>
+              <Button variant="secondary" fullWidth onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button variant="primary"   fullWidth onClick={handleSubmit} loading={submitting}>Submit Ticket</Button>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Ticket list */}
-      <div className="glass-sm" style={{ padding:24 }}>
-        <h3 style={{ fontFamily:"var(--font-d)", fontSize:15, marginBottom:18 }}>My Tickets</h3>
-        {tickets.map(c=>(
-          <div key={c.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 0", borderBottom:"1px solid var(--b1)" }}>
-            <div>
-              <div style={{ fontSize:13, fontWeight:500 }}>{c.subject}</div>
-              <div style={{ fontSize:11, color:"var(--t4)", marginTop:2, fontFamily:"var(--font-m)" }}>{c.id} · {c.date}</div>
-            </div>
-            <StatusPill status={c.status}/>
-          </div>
-        ))}
-      </div>
+      </Modal>
     </div>
   );
 }

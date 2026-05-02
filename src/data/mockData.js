@@ -77,9 +77,9 @@ export const MOCK_COMPLAINTS = [
 ];
 
 export const MOCK_REVENUE_BY_METHOD = [
-  { method:"Cash",   pct:42, color:"var(--blu2)"  },
-  { method:"Wallet", pct:35, color:"var(--v3)"    },
-  { method:"Card",   pct:23, color:"var(--amb)"   },
+  { method:"Cash",   pct:42, color:"#2563EB"  },
+  { method:"Wallet", pct:35, color:"#8B5CF6"    },
+  { method:"Card",   pct:23, color:"#F59E0B"   },
 ];
 
 export const MOCK_RATINGS = [

@@ -1,51 +1,32 @@
-// tailwind.config.js — Cubiny v5
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html','./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        brand: {
-          blu:  "#3b82f6",
-          blu2: "#60a5fa",
-          v:    "#7c3aed",
-          v2:   "#8b5cf6",
-          grn:  "#10b981",
-          grn2: "#34d399",
-        },
+        green:  { DEFAULT:'#22C55E', dark:'#16A34A', light:'#DCFCE7', mid:'#86EFAC' },
+        cobalt: { DEFAULT:'#2563EB', dark:'#1D4ED8', light:'#DBEAFE', mid:'#93C5FD' },
+        slate:  { 50:'#F8FAFC',100:'#F1F5F9',200:'#E2E8F0',300:'#CBD5E1',400:'#94A3B8',500:'#64748B',600:'#475569',700:'#334155',800:'#1E293B',900:'#0F172A' },
       },
+      fontFamily: { sans:['Inter','-apple-system','BlinkMacSystemFont','Segoe UI','sans-serif'] },
       boxShadow: {
-        "v-md":  "0 4px 16px rgba(124,62,237,0.35)",
-        "v-lg":  "0 8px 32px rgba(124,62,237,0.5)",
-        "blu-md":"0 4px 16px rgba(59,130,246,0.35)",
-        "blu-lg":"0 8px 32px rgba(59,130,246,0.5)",
-        "c-md":  "0 4px 16px rgba(8,145,178,0.35)",
-        "c-lg":  "0 8px 32px rgba(8,145,178,0.5)",
-        "grn-md":"0 4px 16px rgba(16,185,129,0.35)",
-        "grn-lg":"0 8px 32px rgba(16,185,129,0.5)",
+        xs:   '0 1px 2px rgba(15,23,42,0.05)',
+        card: '0 2px 8px rgba(15,23,42,0.07),0 1px 2px rgba(15,23,42,0.04)',
+        md:   '0 4px 16px rgba(15,23,42,0.09),0 2px 4px rgba(15,23,42,0.04)',
+        lg:   '0 8px 32px rgba(15,23,42,0.11),0 2px 8px rgba(15,23,42,0.05)',
+        xl:   '0 16px 48px rgba(15,23,42,0.13),0 4px 16px rgba(15,23,42,0.06)',
+        green:'0 4px 20px rgba(34,197,94,0.30)',
+        blue: '0 4px 20px rgba(37,99,235,0.28)',
+        float:'0 20px 60px rgba(15,23,42,0.15),0 4px 16px rgba(15,23,42,0.07)',
       },
-      borderRadius: {
-        "r1":"10px", "r2":"14px", "r3":"20px", "r4":"28px",
-      },
-      fontFamily: {
-        display:["Syne","sans-serif"],
-        body:   ["Plus Jakarta Sans","sans-serif"],
-        mono:   ["JetBrains Mono","monospace"],
+      borderRadius: { sm:'6px', DEFAULT:'10px', lg:'14px', xl:'20px', '2xl':'28px' },
+      animation: {
+        'fade-up':'fade-up 0.4s cubic-bezier(0.4,0,0.2,1) both',
+        'spin-s':'spin-s 0.75s linear infinite',
       },
       keyframes: {
-        "spin-s":    { to:{ transform:"rotate(360deg)" } },
-        "fade-up":   { from:{ opacity:0, transform:"translateY(12px)" }, to:{ opacity:1, transform:"translateY(0)" } },
-        "bounce-in": { "0%":{ opacity:0, transform:"scale(0.9)" }, "60%":{ transform:"scale(1.03)" }, "100%":{ opacity:1, transform:"scale(1)" } },
-        shimmer:     { "0%":{ backgroundPosition:"200% 0" }, "100%":{ backgroundPosition:"-200% 0" } },
-      },
-      animation: {
-        "spin-s":   "spin-s 0.8s linear infinite",
-        "fade-up":  "fade-up 0.35s ease both",
-        "bounce-in":"bounce-in 0.4s ease both",
-        shimmer:    "shimmer 2s linear infinite",
+        'fade-up':{ from:{opacity:0,transform:'translateY(18px)'},to:{opacity:1,transform:'translateY(0)'} },
+        'spin-s':{ to:{transform:'rotate(360deg)'} },
       },
     },
   },

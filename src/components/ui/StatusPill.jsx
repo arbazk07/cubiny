@@ -1,29 +1,30 @@
-// src/components/ui/StatusPill.jsx — Cubiny v5
-const STATUS_MAP = {
-  "Completed":        { cls:"pill-grn", dot:"var(--grn2)" },
-  "In Progress":      { cls:"pill-blu", dot:"var(--blu2)" },
-  "Driver En Route":  { cls:"pill-blu", dot:"var(--blu2)" },
-  "En Route":         { cls:"pill-blu", dot:"var(--blu2)" },
-  "Accepted":         { cls:"pill-v",   dot:"var(--v3)"   },
-  "Requested":        { cls:"pill-a",   dot:"var(--amb)"  },
-  "Cancelled":        { cls:"pill-r",   dot:"#fb7185"     },
-  "Pending":          { cls:"pill-a",   dot:"var(--amb)"  },
-  "Active":           { cls:"pill-grn", dot:"var(--grn2)" },
-  "Offline":          { cls:"pill-r",   dot:"#fb7185"     },
-  "Online":           { cls:"pill-grn", dot:"var(--grn2)" },
-  "Flagged":          { cls:"pill-r",   dot:"#fb7185"     },
-  "Verified":         { cls:"pill-grn", dot:"var(--grn2)" },
+// src/components/ui/StatusPill.jsx — Cubiny v6
+const MAP = {
+  'Completed':       'pill-green',
+  'In Progress':     'pill-blue',
+  'Driver En Route': 'pill-sky',
+  'En Route':        'pill-sky',
+  'Accepted':        'pill-blue',
+  'Requested':       'pill-amber',
+  'Searching':       'pill-amber',
+  'Cancelled':       'pill-red',
+  'Pending':         'pill-amber',
+  'Active':          'pill-green',
+  'Online':          'pill-green',
+  'Offline':         'pill-gray',
+  'Flagged':         'pill-red',
+  'Verified':        'pill-green',
+  'Suspended':       'pill-red',
 };
-
+const DOT = {
+  'pill-green':'#22C55E','pill-blue':'#2563EB','pill-sky':'#0EA5E9',
+  'pill-amber':'#F59E0B','pill-red':'#EF4444','pill-gray':'#94A3B8',
+};
 export function StatusPill({ status }) {
-  const cfg = STATUS_MAP[status] ?? { cls:"pill-v", dot:"var(--v3)" };
+  const cls = MAP[status] ?? 'pill-gray';
   return (
-    <span className={`pill ${cfg.cls}`}>
-      <span style={{
-        width:5, height:5, borderRadius:"50%", background:cfg.dot,
-        boxShadow:`0 0 6px ${cfg.dot}`,
-        animation:"pulse-dot 2s ease infinite",
-      }}/>
+    <span className={`pill ${cls}`}>
+      <span style={{ width:5, height:5, borderRadius:'50%', background:DOT[cls]??'#94A3B8', flexShrink:0 }}/>
       {status}
     </span>
   );

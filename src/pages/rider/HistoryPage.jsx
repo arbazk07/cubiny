@@ -1,87 +1,100 @@
-// src/pages/rider/HistoryPage.jsx  —  Cubiny v2
-import { useState, useEffect } from "react";
-import { MapPin, Navigation, ArrowRight, Star, Filter } from "lucide-react";
-import { StatusPill }       from "../../components/ui/StatusPill";
-import { LoadingSpinner }   from "../../components/ui/LoadingSpinner";
-import { useAuth }          from "../../hooks/useAuth";
-import { getRideHistory }   from "../../services/mockService";
+// src/pages/rider/HistoryPage.jsx — Cubiny v6
+import { useState, useEffect } from 'react';
+import { MapPin, Clock, Star, CheckCircle, XCircle } from 'lucide-react';
+import { StatusPill }     from '../../components/ui/StatusPill';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { getRideHistory } from '../../services/mockService';
 
 export function HistoryPage() {
-  const { user }            = useAuth();
-  const [rides,   setRides] = useState([]);
-  const [loading, setLoad]  = useState(true);
-  const [filter,  setFilter]= useState("all");
+  const [rides,   setRides]  = useState([]);
+  const [loading, setLoad]   = useState(true);
+  const [filter,  setFilter] = useState('All');
 
-  useEffect(()=>{
-    getRideHistory(user?.id).then(data=>{ setRides(data); setLoad(false); });
-  },[user]);
+  useEffect(() => { getRideHistory().then(r => { setRides(r); setLoad(false); }); }, []);
 
-  const filtered = filter==="all" ? rides : rides.filter(r=>r.status.toLowerCase()===filter);
-  const filters  = ["all","completed","cancelled"];
+  const FILTERS = ['All','Completed','Cancelled'];
+  const filtered = filter === 'All' ? rides : rides.filter(r => r.status === filter);
 
   if (loading) return <LoadingSpinner label="Loading ride history…"/>;
 
   return (
-    <div className="mesh-subtle" style={{ padding:28, overflowY:"auto", height:"100vh" }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
-        <div>
-          <h2 style={{ fontFamily:"var(--font-d)", fontSize:22, letterSpacing:"-0.02em" }}>Ride History</h2>
-          <p style={{ fontSize:12, color:"var(--t3)", marginTop:3 }}>{rides.length} total rides</p>
-        </div>
-        <div style={{ display:"flex", gap:4, background:"var(--s1)", borderRadius:"var(--r2)", padding:4, border:"1px solid var(--b1)" }}>
-          {filters.map(f=>(
-            <button key={f} onClick={()=>setFilter(f)} style={{
-              padding:"6px 12px", borderRadius:"var(--r1)", border:"none",
-              background: filter===f?"linear-gradient(135deg,var(--v),var(--v2))":"transparent",
-              color: filter===f?"#fff":"var(--t3)", fontSize:12, fontWeight:filter===f?600:400,
-              cursor:"pointer", fontFamily:"var(--font-b)", transition:"all 0.15s",
-            }}>
-              {f.charAt(0).toUpperCase()+f.slice(1)}
-            </button>
-          ))}
-        </div>
+    <div className="page-scroll">
+      <div style={{ marginBottom:24 }}>
+        <h1 style={{ fontSize:22, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em' }}>My Rides</h1>
+        <p style={{ fontSize:13, color:'var(--text-muted)', marginTop:3 }}>{rides.length} trips total</p>
       </div>
 
-      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {filtered.map((r,i)=>(
-          <div key={r.id} className="animate-fade-up glass-sm" style={{ padding:20, animationDelay:`${i*0.05}s` }}>
-            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12, alignItems:"flex-start" }}>
-              <div>
-                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                  <div style={{ width:8, height:8, borderRadius:"50%", background:"var(--c2)" }}/>
-                  <span style={{ fontSize:14, fontWeight:600 }}>{r.from}</span>
-                  <ArrowRight size={11} color="var(--t4)"/>
-                  <div style={{ width:8, height:8, borderRadius:2, background:"var(--v2)" }}/>
-                  <span style={{ fontSize:14, fontWeight:600 }}>{r.to}</span>
-                </div>
-                <div style={{ fontSize:11, color:"var(--t4)", marginLeft:16 }}>{r.date}</div>
-              </div>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
-                <StatusPill status={r.status}/>
-                <span style={{ fontSize:14, fontWeight:700, fontFamily:"var(--font-d)", color:"var(--t1)" }}>Rs. {r.fare}</span>
-              </div>
+      {/* Filter tabs */}
+      <div style={{ display:'flex', gap:6, marginBottom:20 }}>
+        {FILTERS.map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{
+            padding:'7px 16px', borderRadius:99, fontSize:13, fontWeight:600,
+            background: filter===f ? 'var(--text-primary)' : 'white',
+            color:      filter===f ? 'white' : 'var(--text-secondary)',
+            border:     `1px solid ${filter===f ? 'var(--text-primary)' : 'var(--border)'}`,
+            cursor:'pointer', transition:'all 0.15s', fontFamily:'var(--font)',
+          }}>
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Ride cards */}
+      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+        {filtered.map(r => (
+          <div key={r.id} style={{ background:'white', border:'1px solid var(--border)', borderRadius:'var(--r-xl)', padding:'18px 20px', boxShadow:'var(--shadow-sm)', display:'flex', alignItems:'center', gap:16, transition:'box-shadow 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = 'var(--shadow-md)'}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = 'var(--shadow-sm)'}
+          >
+            {/* Status icon */}
+            <div style={{
+              width:42, height:42, borderRadius:'50%', flexShrink:0,
+              background: r.status==='Completed' ? '#F0FDF4' : '#FEF2F2',
+              display:'flex', alignItems:'center', justifyContent:'center',
+            }}>
+              {r.status==='Completed'
+                ? <CheckCircle size={18} color="#22C55E" strokeWidth={2}/>
+                : <XCircle     size={18} color="#EF4444" strokeWidth={2}/>
+              }
             </div>
-            {r.driver!=="N/A" && (
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", paddingTop:12, borderTop:"1px solid var(--b1)" }}>
-                <span style={{ fontSize:12, color:"var(--t3)" }}>Driver: {r.driver}</span>
+
+            {/* Route */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+                <MapPin size={11} color="#22C55E" strokeWidth={2.2}/>
+                <span style={{ fontSize:12, color:'var(--text-muted)' }}>{r.from}</span>
+                <span style={{ fontSize:10, color:'var(--text-muted)' }}>→</span>
+                <MapPin size={11} color="#2563EB" strokeWidth={2.2}/>
+                <span style={{ fontSize:12, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.to}</span>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <span style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)' }}>{r.driver}</span>
                 {r.driverRating && (
-                  <div style={{ display:"flex", gap:2 }}>
-                    {[1,2,3,4,5].map(s=>(
-                      <Star key={s} size={11} color="var(--amb)" fill={s<=r.driverRating?"var(--amb)":"transparent"}/>
-                    ))}
-                  </div>
+                  <span style={{ display:'flex', alignItems:'center', gap:3, fontSize:11, color:'#92400E' }}>
+                    <Star size={10} color="#F59E0B" fill="#F59E0B"/>
+                    {r.driverRating}
+                  </span>
                 )}
               </div>
-            )}
+            </div>
+
+            {/* Fare + date */}
+            <div style={{ textAlign:'right', flexShrink:0 }}>
+              <p style={{ fontSize:15, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.02em' }}>Rs. {r.fare}</p>
+              <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:3 }}>{r.date}</p>
+              <div style={{ marginTop:5 }}><StatusPill status={r.status}/></div>
+            </div>
           </div>
         ))}
-        {filtered.length===0 && (
-          <div style={{ textAlign:"center", padding:"40px 0", color:"var(--t4)" }}>
-            <div style={{ fontSize:32, marginBottom:10 }}>🛺</div>
-            <p>No {filter} rides found</p>
-          </div>
-        )}
       </div>
+
+      {filtered.length === 0 && (
+        <div style={{ textAlign:'center', padding:'48px 0', color:'var(--text-muted)' }}>
+          <Clock size={32} style={{ margin:'0 auto 12px', opacity:0.4 }}/>
+          <p style={{ fontSize:15, fontWeight:600 }}>No rides found</p>
+          <p style={{ fontSize:13, marginTop:4 }}>Your {filter.toLowerCase()} trips will appear here</p>
+        </div>
+      )}
     </div>
   );
 }

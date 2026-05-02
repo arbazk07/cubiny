@@ -1,76 +1,50 @@
-// src/components/ui/StatCard.jsx — Cubiny v5
+// src/components/ui/StatCard.jsx — Cubiny v6 Professional
+import { TrendingUp, TrendingDown } from 'lucide-react';
+
 const COLORS = {
-  violet: { text:"var(--v3)",   bg:"rgba(124,62,237,0.10)", border:"rgba(124,62,237,0.22)", glow:"rgba(124,62,237,0.07)" },
-  blue:   { text:"var(--blu2)", bg:"rgba(59,130,246,0.10)",  border:"rgba(59,130,246,0.22)",  glow:"rgba(59,130,246,0.06)"  },
-  cyan:   { text:"var(--c3)",   bg:"rgba(8,145,178,0.09)",   border:"rgba(8,145,178,0.20)",   glow:"rgba(8,145,178,0.06)"   },
-  green:  { text:"var(--grn2)", bg:"rgba(16,185,129,0.09)",  border:"rgba(16,185,129,0.22)",  glow:"rgba(16,185,129,0.06)"  },
-  amber:  { text:"#fcd34d",     bg:"rgba(245,158,11,0.09)",  border:"rgba(245,158,11,0.20)",  glow:"rgba(245,158,11,0.06)"  },
-  red:    { text:"#fb7185",     bg:"rgba(244,63,94,0.09)",   border:"rgba(244,63,94,0.20)",   glow:"rgba(244,63,94,0.06)"   },
+  green:  { bg:'#F0FDF4', border:'#BBF7D0', text:'#16A34A', icon:'#22C55E' },
+  blue:   { bg:'#EFF6FF', border:'#BFDBFE', text:'#1D4ED8', icon:'#3B82F6' },
+  amber:  { bg:'#FFFBEB', border:'#FDE68A', text:'#92400E', icon:'#F59E0B' },
+  red:    { bg:'#FFF1F2', border:'#FECDD3', text:'#9F1239', icon:'#F43F5E' },
+  sky:    { bg:'#F0F9FF', border:'#BAE6FD', text:'#0369A1', icon:'#0EA5E9' },
+  purple: { bg:'#FAF5FF', border:'#E9D5FF', text:'#7E22CE', icon:'#A855F7' },
 };
 
-export function StatCard({ icon: Icon, label, value, sub, trend, color = "blue" }) {
-  const clr = COLORS[color] ?? COLORS.blue;
+export function StatCard({ icon:Icon, label, value, sub, trend, color='blue' }) {
+  const c = COLORS[color] ?? COLORS.blue;
+  const isUp = trend > 0;
   return (
-    <div className="animate-fade-up" style={{
-      background:    `linear-gradient(135deg, ${clr.glow}, var(--s1))`,
-      border:        `1px solid ${clr.border}`,
-      borderRadius:  "var(--r3)",
-      padding:       "22px 24px",
-      display:       "flex",
-      flexDirection: "column",
-      gap:           12,
-      boxShadow:     "var(--sh-card)",
-      position:      "relative",
-      overflow:      "hidden",
-      transition:    "transform 0.2s, box-shadow 0.2s",
-    }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform  = "translateY(-2px)";
-        e.currentTarget.style.boxShadow  = `0 16px 48px rgba(0,0,0,0.45), 0 0 0 1px ${clr.border}`;
+    <div
+      style={{
+        background:'var(--bg-white)', border:`1px solid var(--border)`,
+        borderRadius:'var(--r-xl)', padding:'20px 24px',
+        boxShadow:'var(--shadow-sm)', cursor:'default',
+        transition:'box-shadow 0.2s, transform 0.2s', position:'relative', overflow:'hidden',
       }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "var(--sh-card)";
-      }}
+      onMouseEnter={e=>{ e.currentTarget.style.boxShadow='var(--shadow-md)'; e.currentTarget.style.transform='translateY(-1px)'; }}
+      onMouseLeave={e=>{ e.currentTarget.style.boxShadow='var(--shadow-sm)'; e.currentTarget.style.transform='translateY(0)'; }}
     >
-      {/* Corner accent */}
-      <div style={{
-        position:"absolute", top:-24, right:-24, width:100, height:100,
-        borderRadius:"50%", background:`radial-gradient(circle, ${clr.bg}, transparent)`,
-        pointerEvents:"none",
-      }}/>
+      {/* Subtle top accent */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, height:3, borderRadius:'var(--r-xl) var(--r-xl) 0 0', background:`linear-gradient(90deg,${c.icon},${c.icon}88)` }}/>
 
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <span style={{
-          fontSize:10, color:"var(--t3)", textTransform:"uppercase",
-          letterSpacing:"0.12em", fontWeight:700,
-        }}>{label}</span>
-        <div style={{
-          background:clr.bg, borderRadius:12, padding:"8px",
-          border:`1px solid ${clr.border}`,
-        }}>
-          <Icon size={15} color={clr.text}/>
-        </div>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:14 }}>
+        <p style={{ fontSize:12, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>{label}</p>
+        <span style={{ background:c.bg, border:`1px solid ${c.border}`, borderRadius:'var(--r-md)', padding:'7px', display:'flex' }}>
+          <Icon size={15} color={c.icon} strokeWidth={2}/>
+        </span>
       </div>
 
-      <div style={{
-        fontSize:28, fontWeight:800, fontFamily:"var(--font-d)",
-        color:clr.text, letterSpacing:"-0.03em", lineHeight:1,
-      }}>
-        {value}
-      </div>
+      <p style={{ fontSize:26, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-0.03em', lineHeight:1, marginBottom:6 }}>{value}</p>
 
       {(sub || trend !== undefined) && (
-        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
           {trend !== undefined && (
-            <span style={{
-              fontSize:11, fontWeight:700, fontFamily:"var(--font-m)",
-              color: trend > 0 ? "var(--grn2)" : "#fb7185",
-            }}>
-              {trend > 0 ? "↑" : "↓"} {Math.abs(trend)}%
+            <span style={{ display:'flex', alignItems:'center', gap:2, fontSize:11, fontWeight:700, color:isUp?'#16A34A':'#DC2626' }}>
+              {isUp ? <TrendingUp size={11}/> : <TrendingDown size={11}/>}
+              {Math.abs(trend)}%
             </span>
           )}
-          {sub && <span style={{ fontSize:11, color:"var(--t3)" }}>{sub}</span>}
+          {sub && <span style={{ fontSize:11, color:'var(--text-muted)' }}>{sub}</span>}
         </div>
       )}
     </div>

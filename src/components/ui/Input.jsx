@@ -1,80 +1,58 @@
-// src/components/ui/Input.jsx — Cubiny v5
-import clsx from "clsx";
-
-export function Input({
-  label, hint, icon: Icon, iconRight: IconRight,
-  onIconRightClick, error, className = "", style = {}, ...props
-}) {
+// src/components/ui/Input.jsx — Cubiny v6 Professional
+export function Input({ label, hint, icon: Icon, iconRight: IconRight,
+  onIconRightClick, error, helper, className = '', style = {}, ...props }) {
   return (
-    <div className="flex flex-col gap-1.5 w-full">
-      {label && (
-        <div className="flex justify-between items-center">
-          <label style={{ fontSize:12, color:"var(--t2)", fontWeight:600, letterSpacing:"0.03em" }}>
-            {label}
-          </label>
+    <div style={{ display:'flex', flexDirection:'column', gap:6, width:'100%' }}>
+      {(label || hint) && (
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          {label && <label style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', letterSpacing:'-0.01em' }}>{label}</label>}
           {hint && (
-            <button type="button" style={{
-              fontSize:11, color:"var(--blu2)", background:"none", border:"none",
-              cursor:"pointer", fontFamily:"var(--font-b)", fontWeight:500,
-            }}>
+            <button type="button" style={{ fontSize:12, color:'var(--cobalt)', background:'none', border:'none', cursor:'pointer', fontFamily:'var(--font)', fontWeight:500 }}>
               {hint}
             </button>
           )}
         </div>
       )}
-      <div className="relative">
+      <div style={{ position:'relative' }}>
         {Icon && (
-          <Icon size={14} style={{
-            position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
-            color: error ? "#fb7185" : "var(--t3)", pointerEvents:"none",
-          }}/>
+          <span style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color: error ? '#DC2626' : 'var(--text-muted)', display:'flex', pointerEvents:'none' }}>
+            <Icon size={16} strokeWidth={1.8}/>
+          </span>
         )}
         <input
-          className={clsx(
-            "w-full text-[14px] transition-all duration-200",
-            "placeholder:text-[var(--t4)]",
-            Icon     && "pl-9",
-            IconRight && "pr-10",
-            className,
-          )}
+          className={className}
           style={{
-            background:   error ? "rgba(244,63,94,0.05)" : "var(--s2)",
-            border:       `1px solid ${error ? "rgba(244,63,94,0.45)" : "var(--b2)"}`,
-            borderRadius: "var(--r2)",
-            padding:      "12px 16px",
-            color:        "var(--t1)",
-            fontFamily:   "var(--font-b)",
-            boxShadow:    error ? "0 0 0 3px rgba(244,63,94,0.10)" : "none",
+            width:'100%', height:44,
+            padding: Icon ? '0 14px 0 42px' : IconRight ? '0 42px 0 14px' : '0 14px',
+            fontSize:14, color:'var(--text-primary)',
+            background: error ? '#FFF8F8' : 'var(--bg-white)',
+            border: `1.5px solid ${error ? '#EF4444' : 'var(--border)'}`,
+            borderRadius:'var(--r-lg)', fontFamily:'var(--font)',
+            transition:'border-color 0.15s, box-shadow 0.15s',
+            boxShadow: error ? '0 0 0 3px rgba(239,68,68,0.10)' : 'var(--shadow-xs)',
             ...style,
           }}
           onFocus={e => {
-            e.target.style.border     = "1px solid rgba(59,130,246,0.55)";
-            e.target.style.boxShadow  = "0 0 0 3px rgba(59,130,246,0.12)";
-            e.target.style.background = "var(--s3)";
+            e.target.style.borderColor = error ? '#EF4444' : 'var(--cobalt)';
+            e.target.style.boxShadow   = error ? '0 0 0 3px rgba(239,68,68,0.12)' : '0 0 0 3px rgba(37,99,235,0.12)';
           }}
           onBlur={e => {
-            const hasErr = !!error;
-            e.target.style.border     = `1px solid ${hasErr ? "rgba(244,63,94,0.45)" : "var(--b2)"}`;
-            e.target.style.boxShadow  = hasErr ? "0 0 0 3px rgba(244,63,94,0.10)" : "none";
-            e.target.style.background = hasErr ? "rgba(244,63,94,0.05)" : "var(--s2)";
+            e.target.style.borderColor = error ? '#EF4444' : 'var(--border)';
+            e.target.style.boxShadow   = error ? '0 0 0 3px rgba(239,68,68,0.10)' : 'var(--shadow-xs)';
           }}
           {...props}
         />
         {IconRight && (
           <button type="button" onClick={onIconRightClick} style={{
-            position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
-            background:"none", border:"none", color:"var(--t3)",
-            cursor:"pointer", display:"flex", alignItems:"center",
+            position:'absolute', right:12, top:'50%', transform:'translateY(-50%)',
+            background:'none', border:'none', color:'var(--text-muted)', display:'flex', cursor:'pointer', padding:4,
           }}>
-            <IconRight size={15}/>
+            <IconRight size={16} strokeWidth={1.8}/>
           </button>
         )}
       </div>
-      {error && (
-        <p style={{ fontSize:11, color:"#fb7185", marginTop:1, display:"flex", alignItems:"center", gap:4 }}>
-          {error}
-        </p>
-      )}
+      {error  && <p style={{ fontSize:12, color:'#DC2626',             marginTop:2 }}>{error}</p>}
+      {helper && <p style={{ fontSize:12, color:'var(--text-muted)',   marginTop:2 }}>{helper}</p>}
     </div>
   );
 }

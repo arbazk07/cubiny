@@ -1,96 +1,70 @@
-// src/components/ui/Button.jsx — Cubiny v5 — Tactile, premium, vibrant
-import clsx from "clsx";
+// src/components/ui/Button.jsx — Cubiny v6 Professional
+import clsx from 'clsx';
 
-const STYLES = {
+const VARIANTS = {
   primary: {
-    bg:  "linear-gradient(135deg,#3b82f6,#7c3aed)",
-    cls: "text-white border-none hover:-translate-y-0.5 active:scale-[0.96]",
-    shadow: "0 6px 24px rgba(59,130,246,0.45)",
-    hoverShadow: "0 10px 32px rgba(59,130,246,0.6)",
+    base: 'bg-[#22C55E] text-white border-transparent hover:bg-[#16A34A] active:scale-[0.97]',
+    shadow: '0 4px 14px rgba(34,197,94,0.35)',
+  },
+  cobalt: {
+    base: 'bg-[#2563EB] text-white border-transparent hover:bg-[#1D4ED8] active:scale-[0.97]',
+    shadow: '0 4px 14px rgba(37,99,235,0.30)',
   },
   secondary: {
-    bg:  "var(--s2)",
-    cls: "text-[var(--t1)] border border-[var(--b2)] hover:bg-[var(--s3)] hover:border-[var(--b3)] active:scale-[0.96]",
-    shadow: "none",
-    hoverShadow: "none",
-  },
-  violet: {
-    bg:  "linear-gradient(135deg,#7c3aed,#8b5cf6)",
-    cls: "text-white border-none hover:-translate-y-0.5 active:scale-[0.96]",
-    shadow: "0 6px 24px rgba(124,62,237,0.4)",
-    hoverShadow: "0 10px 32px rgba(124,62,237,0.6)",
-  },
-  cyan: {
-    bg:  "linear-gradient(135deg,#0891b2,#06b6d4)",
-    cls: "text-white border-none hover:-translate-y-0.5 active:scale-[0.96]",
-    shadow: "0 6px 24px rgba(8,145,178,0.4)",
-    hoverShadow: "0 10px 32px rgba(8,145,178,0.6)",
-  },
-  green: {
-    bg:  "linear-gradient(135deg,#10b981,#34d399)",
-    cls: "text-white border-none hover:-translate-y-0.5 active:scale-[0.96]",
-    shadow: "0 6px 24px rgba(16,185,129,0.4)",
-    hoverShadow: "0 10px 32px rgba(16,185,129,0.6)",
-  },
-  danger: {
-    bg:  "rgba(244,63,94,0.1)",
-    cls: "text-[#fb7185] border border-[rgba(244,63,94,0.3)] hover:bg-[rgba(244,63,94,0.2)] active:scale-[0.96]",
-    shadow: "none",
-    hoverShadow: "none",
+    base: 'bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] active:scale-[0.97]',
+    shadow: '0 1px 4px rgba(15,23,42,0.06)',
   },
   ghost: {
-    bg:  "transparent",
-    cls: "text-[var(--t2)] border-none hover:text-[var(--t1)] hover:bg-[var(--s2)]",
-    shadow: "none",
-    hoverShadow: "none",
+    base: 'bg-transparent text-[#475569] border-transparent hover:bg-[#F1F5F9] hover:text-[#0F172A]',
+    shadow: 'none',
+  },
+  danger: {
+    base: 'bg-[#FEE2E2] text-[#DC2626] border-transparent hover:bg-[#FECACA] active:scale-[0.97]',
+    shadow: 'none',
   },
   success: {
-    bg:  "rgba(16,185,129,0.1)",
-    cls: "text-[#34d399] border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] active:scale-[0.96]",
-    shadow: "none",
-    hoverShadow: "none",
+    base: 'bg-[#DCFCE7] text-[#16A34A] border-transparent hover:bg-[#BBF7D0] active:scale-[0.97]',
+    shadow: 'none',
+  },
+  dark: {
+    base: 'bg-[#0F172A] text-white border-transparent hover:bg-[#1E293B] active:scale-[0.97]',
+    shadow: '0 4px 14px rgba(15,23,42,0.25)',
   },
 };
 
-export function Button({
-  children, variant = "primary", className = "",
-  loading = false, disabled = false, fullWidth = false,
-  size = "md", style = {}, ...props
-}) {
-  const s = STYLES[variant] ?? STYLES.primary;
-  const sizeClass =
-    size === "sm" ? "px-4 py-2 text-[13px] rounded-xl gap-1.5" :
-    size === "lg" ? "px-7 py-3.5 text-[15px] rounded-2xl gap-2.5" :
-                   "px-5 py-2.5 text-[14px] rounded-xl gap-2";
+const SIZES = {
+  xs:  'px-3 py-1.5 text-xs rounded-lg gap-1',
+  sm:  'px-4 py-2 text-sm rounded-xl gap-1.5',
+  md:  'px-5 py-2.5 text-sm rounded-xl gap-2',
+  lg:  'px-6 py-3 text-[15px] rounded-xl gap-2',
+  xl:  'px-7 py-3.5 text-base rounded-2xl gap-2.5',
+};
 
+export function Button({
+  children, variant = 'primary', size = 'md',
+  fullWidth = false, loading = false, disabled = false,
+  className = '', style = {}, iconOnly = false, ...props
+}) {
+  const v = VARIANTS[variant] ?? VARIANTS.primary;
+  const s = SIZES[size] ?? SIZES.md;
   return (
     <button
       disabled={disabled || loading}
       className={clsx(
-        "flex items-center justify-center font-semibold transition-all duration-200",
-        "disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none",
-        fullWidth && "w-full",
-        sizeClass, s.cls, className,
+        'inline-flex items-center justify-center font-semibold border',
+        'transition-all duration-150 select-none',
+        'disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none',
+        fullWidth && 'w-full',
+        iconOnly && 'aspect-square !px-0',
+        s, v.base, className,
       )}
-      style={{
-        background: bg(disabled || loading, s.bg),
-        fontFamily: "var(--font-b)",
-        boxShadow: s.shadow,
-        letterSpacing: "-0.01em",
-        ...style,
-      }}
-      onMouseEnter={e => { if (s.hoverShadow !== "none" && !disabled && !loading) e.currentTarget.style.boxShadow = s.hoverShadow; }}
-      onMouseLeave={e => { if (!disabled && !loading) e.currentTarget.style.boxShadow = s.shadow; }}
+      style={{ boxShadow: (disabled || loading) ? 'none' : v.shadow, ...style }}
       {...props}
     >
       {loading && (
-        <span className="w-4 h-4 rounded-full border-2 border-white/25 border-t-white animate-spin-s shrink-0"/>
+        <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent anim-spin shrink-0" />
       )}
       {children}
     </button>
   );
-}
-
-function bg(isDisabled, gradient) {
-  return isDisabled ? gradient : gradient;
 }
