@@ -1,0 +1,8 @@
+node_modules/
+dist/
+release/
+.env
+*.log
+electron/assets/*.ico
+electron/assets/*.icns
+electron/assets/*.png

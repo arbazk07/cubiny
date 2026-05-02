@@ -1,29 +1,85 @@
 {
-  "name": "cubiny",
-  "private": true,
-  "version": "2.0.0",
-  "type": "module",
+  "name": "cubiny-desktop",
+  "version": "4.0.0",
+  "description": "Cubiny Premium Rides — Desktop App (Electron + React)",
+  "main": "electron/main.js",
+  "homepage": "./",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev":          "concurrently \"npm run vite\" \"npm run electron:dev\"",
+    "vite":         "vite --port 3000",
+    "electron:dev": "wait-on http://localhost:3000 && cross-env NODE_ENV=development electron .",
+    "build":        "vite build",
+    "dist":         "npm run build && electron-builder",
+    "dist:win":     "npm run build && electron-builder --win",
+    "dist:mac":     "npm run build && electron-builder --mac",
+    "dist:linux":   "npm run build && electron-builder --linux",
+    "preview":      "vite preview"
+  },
+  "build": {
+    "appId":          "pk.cubiny.desktop",
+    "productName":    "Cubiny",
+    "copyright":      "© 2026 Cubiny Technologies",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      { "from": "electron/assets", "to": "assets" }
+    ],
+    "win": {
+      "icon":           "electron/assets/icon.ico",
+      "target":         [{ "target": "nsis", "arch": ["x64"] }],
+      "requestedExecutionLevel": "asUser"
+    },
+    "mac": {
+      "icon":           "electron/assets/icon.icns",
+      "category":       "public.app-category.travel",
+      "target":         [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+      "darkModeSupport": true
+    },
+    "linux": {
+      "icon":           "electron/assets/icon.png",
+      "target":         ["AppImage", "deb"],
+      "category":       "Utility"
+    },
+    "nsis": {
+      "oneClick":           false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName":     "Cubiny"
+    },
+    "dmg": {
+      "title":          "Install Cubiny",
+      "backgroundColor":"#050510"
+    }
   },
   "dependencies": {
-    "axios": "^1.6.8",
-    "clsx": "^2.1.0",
-    "framer-motion": "^11.0.8",
-    "lucide-react": "^0.363.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "axios":          "^1.6.8",
+    "clsx":           "^2.1.0",
+    "framer-motion":  "^11.0.8",
+    "lucide-react":   "^0.363.0",
+    "react":          "^18.2.0",
+    "react-dom":      "^18.2.0",
     "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
-    "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
+    "@types/react":         "^18.2.64",
+    "@types/react-dom":     "^18.2.21",
     "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.18",
-    "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1",
-    "vite": "^5.1.6"
+    "autoprefixer":         "^10.4.18",
+    "concurrently":         "^8.2.2",
+    "cross-env":            "^7.0.3",
+    "electron":             "^30.0.1",
+    "electron-builder":     "^24.13.3",
+    "postcss":              "^8.4.35",
+    "tailwindcss":          "^3.4.1",
+    "vite":                 "^5.1.6",
+    "wait-on":              "^7.2.0"
   }
 }

@@ -1,200 +1,208 @@
-// src/services/mockService.js
+// src/services/mockService.js  —  Cubiny Iteration 3
 // ─────────────────────────────────────────────────────────────────
-// Wraps every mock data export in a simulated async call.
-// Every function signature here matches the real API call that will
-// replace it in Iteration 3.
-//
-// Pattern:
-//   mockService.login(email, password)   ←→   api.post('/auth/login', ...)
-//   mockService.getRideHistory(userId)   ←→   api.get(`/rides/history/${userId}`)
-//
-// This lets components call service functions and never know whether
-// they're hitting mock data or a real MySQL backend.
+// ALL functions now call the real Node.js/MySQL backend via api.js.
+// Mock data fallback is only used if VITE_USE_MOCK=true in .env.
 // ─────────────────────────────────────────────────────────────────
-import {
-  MOCK_USERS, MOCK_ACTIVE_RIDES, MOCK_FLAGGED_DRIVERS,
-  MOCK_PLATFORM_STATS, MOCK_RIDE_HISTORY, MOCK_EARNINGS_CHART,
-  MOCK_INCOMING_RIDE, MOCK_PROMO_CODES, MOCK_COMPLAINTS,
-  MOCK_REVENUE_BY_METHOD, MOCK_RATINGS, MOCK_WALLET_TRANSACTIONS,
-} from "../data/mockData";
+import api from "./api";
+import * as mock from "../data/mockData";
 
-// Simulates network latency
-const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms));
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+const delay    = (ms = 600) => new Promise(r => setTimeout(r, ms));
 
-// ── Auth ────────────────────────────────────────────────────────
-// Iteration 3: api.post('/auth/login', { email, password })
-export async function login(role) {
-  await delay(900);
-  const user = MOCK_USERS[role];
-  if (!user) throw new Error("Invalid credentials");
-  // Simulate a JWT token
-  const token = `mock_jwt_${role}_${Date.now()}`;
-  return { user, token };
+// ── Helper: unwrap axios response ─────────────────────────────────
+const unwrap = (res) => res.data.data;
+
+// ── Auth ──────────────────────────────────────────────────────────
+export async function login(role, email, password) {
+  if (USE_MOCK) {
+    await delay(900);
+    const user  = mock.MOCK_USERS[role];
+    if (!user) throw new Error("Invalid credentials");
+    return { user, token: `mock_jwt_${role}_${Date.now()}` };
+  }
+  const res = await api.post("/auth/login", { email, password });
+  return { user: res.data.data.user, token: res.data.data.accessToken };
 }
 
-// Iteration 3: api.post('/auth/logout')
+export async function register(payload) {
+  if (USE_MOCK) { await delay(900); return { success: true }; }
+  return unwrap(await api.post("/auth/register", payload));
+}
+
 export async function logout() {
-  await delay(200);
-  return { success: true };
+  if (USE_MOCK) { await delay(200); return; }
+  const refresh = localStorage.getItem("cubiny_refresh");
+  await api.post("/auth/logout", { refreshToken: refresh });
 }
 
-// ── Rides ───────────────────────────────────────────────────────
-// Iteration 3: api.get(`/rides/history/${userId}`)
-export async function getRideHistory(userId) {
-  await delay(500);
-  return MOCK_RIDE_HISTORY;
+export async function getMe() {
+  if (USE_MOCK) { await delay(200); return null; }
+  return unwrap(await api.get("/auth/me"));
 }
 
-// Iteration 3: api.get('/rides/active')
-export async function getActiveRides() {
-  await delay(400);
-  return MOCK_ACTIVE_RIDES;
+// ── Rides ─────────────────────────────────────────────────────────
+export async function getFares(distanceKm = 7.2, durationMin = 18) {
+  if (USE_MOCK) {
+    await delay(300);
+    const { getAllFares } = await import("./fareService");
+    return getAllFares(distanceKm, durationMin);
+  }
+  return unwrap(await api.get("/rides/fares", { params: { distance: distanceKm, duration: durationMin } }));
 }
 
-// Iteration 3: api.post('/rides/request', payload)
 export async function requestRide(payload) {
-  await delay(1200);
-  return {
-    id:     `RD-${Math.floor(8800 + Math.random() * 100)}`,
-    status: "Requested",
-    ...payload,
-  };
+  if (USE_MOCK) {
+    await delay(1200);
+    return { id: `RD-${Math.floor(8800 + Math.random() * 100)}`, status: "Requested", ...payload };
+  }
+  return unwrap(await api.post("/rides/request", payload));
 }
 
-// Iteration 3: api.patch(`/rides/${rideId}/cancel`)
-export async function cancelRide(rideId) {
-  await delay(600);
-  return { success: true, rideId };
+export async function updateRideStatus(rideId, status, extra = {}) {
+  if (USE_MOCK) { await delay(400); return { status }; }
+  return unwrap(await api.patch(`/rides/${rideId}/status`, { status, ...extra }));
 }
 
-// ── Drivers ─────────────────────────────────────────────────────
-// Iteration 3: api.get('/drivers/flagged')
-export async function getFlaggedDrivers() {
-  await delay(400);
-  return MOCK_FLAGGED_DRIVERS;
+export async function getRideHistory() {
+  if (USE_MOCK) { await delay(500); return mock.MOCK_RIDE_HISTORY; }
+  return unwrap(await api.get("/rides/history"));
 }
 
-// Iteration 3: api.patch(`/drivers/${driverId}/availability`, { status })
-export async function setDriverAvailability(driverId, status) {
-  await delay(300);
-  return { driverId, status };
+export async function getActiveRides() {
+  if (USE_MOCK) { await delay(400); return mock.MOCK_ACTIVE_RIDES; }
+  return unwrap(await api.get("/rides/active"));
 }
 
-// Iteration 3: api.get(`/drivers/${driverId}/incoming-ride`)
-export async function getIncomingRide(driverId) {
-  await delay(3000); // simulates WebSocket delay
-  return MOCK_INCOMING_RIDE;
+// ── Drivers ───────────────────────────────────────────────────────
+export async function getDriverProfile() {
+  if (USE_MOCK) { await delay(300); return mock.MOCK_USERS.driver; }
+  return unwrap(await api.get("/drivers/me"));
 }
 
-// Iteration 3: api.patch(`/rides/${rideId}/accept`)
+export async function setDriverAvailability(status) {
+  if (USE_MOCK) { await delay(300); return { status }; }
+  return unwrap(await api.patch("/drivers/availability", { status }));
+}
+
+export async function getIncomingRide() {
+  if (USE_MOCK) { await delay(3000); return mock.MOCK_INCOMING_RIDE; }
+  // In production this is a WebSocket event, not a REST poll.
+  // This REST fallback is for environments without WS support.
+  return unwrap(await api.get("/drivers/incoming-ride"));
+}
+
 export async function acceptRide(rideId) {
-  await delay(500);
-  return { success: true, rideId };
+  if (USE_MOCK) { await delay(500); return { success: true }; }
+  return unwrap(await api.patch(`/rides/${rideId}/status`, { status: "Accepted" }));
 }
 
-// Iteration 3: api.patch(`/rides/${rideId}/decline`)
 export async function declineRide(rideId) {
-  await delay(300);
-  return { success: true, rideId };
+  if (USE_MOCK) { await delay(300); return { success: true }; }
+  return unwrap(await api.patch(`/rides/${rideId}/status`, { status: "Cancelled", reason: "Driver declined" }));
 }
 
-// ── Earnings ────────────────────────────────────────────────────
-// Iteration 3: api.get(`/drivers/${driverId}/earnings?period=weekly`)
-export async function getWeeklyEarnings(driverId) {
-  await delay(400);
-  return MOCK_EARNINGS_CHART;
+// ── Earnings ──────────────────────────────────────────────────────
+export async function getWeeklyEarnings() {
+  if (USE_MOCK) { await delay(400); return mock.MOCK_EARNINGS_CHART; }
+  const data = unwrap(await api.get("/drivers/earnings"));
+  // Normalize to { day, amount } shape for chart
+  return data.daily?.map(e => ({ day: e.day?.slice(0, 3), amount: parseFloat(e.amount) })) ?? [];
 }
 
-// Iteration 3: api.post(`/drivers/${driverId}/payout`)
-export async function requestPayout(driverId) {
-  await delay(800);
-  return { success: true, message: "Payout request submitted. Processing in 2–3 business days." };
+export async function requestPayout() {
+  if (USE_MOCK) { await delay(800); return { success: true, message: "Payout request submitted." }; }
+  return unwrap(await api.post("/drivers/payout"));
 }
 
-// ── Vehicles ────────────────────────────────────────────────────
-// Iteration 3: api.post('/vehicles/register', vehicleData)
+// ── Vehicles ──────────────────────────────────────────────────────
 export async function registerVehicle(vehicleData) {
-  await delay(800);
-  return { success: true, vehicleId: `V${Math.floor(100 + Math.random() * 900)}`, status: "Pending" };
+  if (USE_MOCK) {
+    await delay(800);
+    return { success: true, vehicleId: `V${Math.floor(100 + Math.random() * 900)}`, status: "Pending" };
+  }
+  return unwrap(await api.post("/drivers/vehicles", vehicleData));
 }
 
-// ── Wallet ──────────────────────────────────────────────────────
-// Iteration 3: api.get(`/wallet/${userId}/transactions`)
-export async function getWalletTransactions(userId) {
-  await delay(400);
-  return MOCK_WALLET_TRANSACTIONS;
+export async function getVehicles() {
+  if (USE_MOCK) { await delay(300); return [mock.MOCK_USERS.driver.vehicle]; }
+  return unwrap(await api.get("/drivers/vehicles"));
 }
 
-// Iteration 3: api.post(`/wallet/${userId}/topup`, { amount, method })
-export async function topUpWallet(userId, amount, method) {
-  await delay(900);
-  return { success: true, newBalance: 2340 + amount, transactionId: `TXN-${Date.now()}` };
+// ── Wallet ────────────────────────────────────────────────────────
+export async function getWalletTransactions() {
+  if (USE_MOCK) { await delay(400); return mock.MOCK_WALLET_TRANSACTIONS; }
+  return unwrap(await api.get("/wallet/transactions"));
 }
 
-// Iteration 3: api.post('/wallet/cards', cardData)
+export async function topUpWallet(amount, method) {
+  if (USE_MOCK) { await delay(900); return { success: true }; }
+  return unwrap(await api.post("/wallet/topup", { amount, method }));
+}
+
 export async function saveCard(cardData) {
-  await delay(700);
-  return { success: true, last4: cardData.number?.slice(-4) ?? "****" };
+  if (USE_MOCK) { await delay(700); return { success: true }; }
+  return unwrap(await api.post("/wallet/cards", cardData));
 }
 
-// ── Promo codes ─────────────────────────────────────────────────
-// Iteration 3: api.post('/promo/apply', { code, rideId })
+// ── Promo codes ───────────────────────────────────────────────────
+export async function getUserPromoCodes() {
+  if (USE_MOCK) { await delay(400); return mock.MOCK_PROMO_CODES; }
+  return unwrap(await api.get("/promos"));
+}
+
 export async function applyPromoCode(code) {
-  await delay(600);
-  const found = MOCK_PROMO_CODES.find(
-    (p) => p.code === code.toUpperCase().trim() && !p.isUsed,
-  );
-  if (!found) throw new Error("Invalid or expired promo code");
-  return { success: true, code: found.code, discount: found.discount };
+  if (USE_MOCK) {
+    await delay(600);
+    const found = mock.MOCK_PROMO_CODES.find(p => p.code === code.toUpperCase().trim() && !p.isUsed);
+    if (!found) throw new Error("Invalid or expired promo code");
+    return { success: true, code: found.code, discount: found.discount };
+  }
+  return unwrap(await api.post("/promos/validate", { code }));
 }
 
-// Iteration 3: api.get(`/promo/${userId}/codes`)
-export async function getUserPromoCodes(userId) {
-  await delay(400);
-  return MOCK_PROMO_CODES;
-}
-
-// ── Ratings ─────────────────────────────────────────────────────
-// Iteration 3: api.get(`/ratings/${userId}`)
+// ── Ratings ───────────────────────────────────────────────────────
 export async function getUserRatings(userId) {
-  await delay(500);
-  return MOCK_RATINGS;
+  if (USE_MOCK) { await delay(500); return mock.MOCK_RATINGS; }
+  return unwrap(await api.get(`/ratings/${userId}`));
 }
 
-// Iteration 3: api.post('/ratings', ratingPayload)
 export async function submitRating(rideId, ratedUserId, score, comment) {
-  await delay(600);
-  return { success: true, ratingId: `RAT-${Date.now()}` };
+  if (USE_MOCK) { await delay(600); return { success: true }; }
+  return unwrap(await api.post("/ratings", { ride_id: rideId, rated_user_id: ratedUserId, score, comment }));
 }
 
-// ── Complaints ──────────────────────────────────────────────────
-// Iteration 3: api.get(`/complaints/${userId}`)
-export async function getUserComplaints(userId) {
-  await delay(400);
-  return MOCK_COMPLAINTS;
+// ── Complaints ────────────────────────────────────────────────────
+export async function getUserComplaints() {
+  if (USE_MOCK) { await delay(400); return mock.MOCK_COMPLAINTS; }
+  return unwrap(await api.get("/complaints"));
 }
 
-// Iteration 3: api.post('/complaints', { subject, message, userId })
-export async function submitComplaint(subject, message, userId) {
-  await delay(700);
-  return { success: true, ticketId: `TK-${Math.floor(100 + Math.random() * 900)}` };
+export async function submitComplaint(subject, message, category) {
+  if (USE_MOCK) {
+    await delay(700);
+    return { success: true, ticketId: `TK-${Math.floor(100 + Math.random() * 900)}` };
+  }
+  return unwrap(await api.post("/complaints", { subject, description: message, category }));
 }
 
-// ── Admin ───────────────────────────────────────────────────────
-// Iteration 3: api.get('/admin/stats')
+// ── Admin ─────────────────────────────────────────────────────────
 export async function getPlatformStats() {
-  await delay(400);
-  return MOCK_PLATFORM_STATS;
+  if (USE_MOCK) { await delay(400); return mock.MOCK_PLATFORM_STATS; }
+  return unwrap(await api.get("/admin/stats"));
 }
 
-// Iteration 3: api.get('/admin/revenue-by-method')
 export async function getRevenueByMethod() {
-  await delay(400);
-  return MOCK_REVENUE_BY_METHOD;
+  if (USE_MOCK) { await delay(400); return mock.MOCK_REVENUE_BY_METHOD; }
+  const data = unwrap(await api.get("/admin/revenue"));
+  return data.byMethod ?? [];
 }
 
-// Iteration 3: api.patch(`/admin/drivers/${driverId}/status`, { status })
+export async function getFlaggedDrivers() {
+  if (USE_MOCK) { await delay(400); return mock.MOCK_FLAGGED_DRIVERS; }
+  return unwrap(await api.get("/ratings/admin/flagged"));
+}
+
 export async function updateDriverStatus(driverId, status) {
-  await delay(500);
-  return { success: true, driverId, status };
+  if (USE_MOCK) { await delay(500); return { success: true }; }
+  return unwrap(await api.patch(`/admin/users/${driverId}/status`, { status }));
 }

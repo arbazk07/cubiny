@@ -1,4 +1,4 @@
-// src/main.jsx  —  Cubiny v2
+// src/main.jsx — Cubiny Desktop v4
 import React    from "react";
 import ReactDOM from "react-dom/client";
 import { AuthProvider } from "./context/AuthContext";
